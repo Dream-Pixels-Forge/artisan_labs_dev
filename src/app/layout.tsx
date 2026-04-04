@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import { validateEnv } from "@/lib/validate-env";
+import { Analytics } from '@vercel/analytics/next';
 
 // Validate environment at build time
 if (typeof window === 'undefined') {
@@ -52,6 +53,7 @@ export default function RootLayout({
           </SmoothScroll>
         </ErrorBoundary>
         <Toaster />
+        <Analytics />
       </body>
     </html>
   );
