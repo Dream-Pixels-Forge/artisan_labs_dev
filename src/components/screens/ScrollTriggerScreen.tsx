@@ -51,6 +51,9 @@ export default function ScrollTriggerScreen() {
   const [scrollMap, setScrollMap] = useState<ScrollTriggerMap | null>(null)
   const [activeTab, setActiveTab] = useState<TabValue>('modes')
 
+  // Get frames from current sequence for preview
+  const currentFrames = currentSequence?.frames ?? []
+
   const handleScrollPreviewRequest = useCallback((map: ScrollTriggerMap) => {
     setScrollMap(map)
   }, [])
@@ -216,7 +219,7 @@ export default function ScrollTriggerScreen() {
           >
             <ScrollPreview
               map={scrollMap}
-              frames={[]}
+              frames={currentFrames}
               onClose={() => {}}
             />
           </motion.div>
