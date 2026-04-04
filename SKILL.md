@@ -22,12 +22,42 @@ Use this skill when:
 - Troubleshooting deployment issues
 - Configuring security headers
 - Setting up ISR, SSR, or Edge Functions
+- Adding analytics and monitoring
+- Automating deployment workflows
+
+---
+
+## Quick Start
+
+### 1. Connect Your Repository
+
+```
+Vercel Dashboard → Add Project → Import GitHub repo
+```
+
+### 2. Configuration Files
+
+This skill includes ready-to-use configurations:
+
+| File | Purpose |
+|------|---------|
+| `references/vercel-json.md` | Complete vercel.json schema |
+| `references/next-config.md` | Next.js config optimization |
+| `references/env-setup.md` | Environment variables guide |
+| `references/security-headers.md` | Security headers configuration |
+| `references/analytics.md` | Vercel Analytics setup |
+| `references/deploy-automation.md` | GitHub Actions CI/CD |
+| `references/troubleshooting.md` | Common issues and fixes |
+
+### 3. Auto-Deploy Setup
+
+See `references/deploy-automation.md` for automated deployments via GitHub Actions.
+
+---
 
 ## 1. Project Configuration
 
 ### vercel.json Schema
-
-The `vercel.json` file configures your project at the root directory:
 
 ```json
 {
@@ -56,13 +86,6 @@ The `vercel.json` file configures your project at the root directory:
     {
       "src": "/api/(.*)",
       "headers": { "Cache-Control": "no-cache" }
-    }
-  ],
-  
-  "crons": [
-    {
-      "path": "/api/cron",
-      "schedule": "*/5 * * * *"
     }
   ],
   
@@ -97,13 +120,6 @@ The `vercel.json` file configures your project at the root directory:
 | `env` | object | Environment variables |
 | `headers` | object[] | Custom headers |
 | `routes` | object[] | Custom routing rules |
-
-### Environment Variable Reference
-
-**Variable prefixes:**
-- `@` - Reference a Vercel project environment variable
-- `@env` - Reference a system environment variable
-- `@project` - Reference a project-wide secret
 
 ---
 
@@ -148,6 +164,8 @@ The `vercel.json` file configures your project at the root directory:
 }
 ```
 
+See `references/env-setup.md` for detailed environment variable configuration.
+
 ### System Environment Variables
 
 Vercel provides built-in variables:
@@ -183,55 +201,26 @@ Default for pages without dynamic data. No special config needed.
 ### Incremental Static Regeneration (ISR)
 
 ```tsx
-// app/blog/[slug]/page.tsx
 export const revalidate = 60 // Revalidate every 60 seconds
-
-export default async function BlogPost({ params }) {
-  const post = await fetchPost(params.slug)
-  return <article>{post.title}</article>
-}
 ```
-
-**Vercel ISR optimization (2025+):** ISR is now faster and more cost-efficient with Vercel's updated caching infrastructure.
 
 ### Server-Side Rendering (SSR)
 
 ```tsx
-// app/user/page.tsx
 export const dynamic = 'force-dynamic'
-
-export default async function UserPage() {
-  const user = await fetchUser()
-  return <div>{user.name}</div>
-}
 ```
 
 ### Edge Functions
 
 ```tsx
-// app/api/hello/route.ts
 export const runtime = 'edge'
-
-export async function GET() {
-  return Response.json({ message: 'Hello Edge!' })
-}
-```
-
-**Edge config in vercel.json:**
-```json
-{
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "edge",
-      "maxDuration": 30
-    }
-  }
-}
 ```
 
 ---
 
 ## 5. Security Best Practices
+
+See `references/security-headers.md` for complete security configuration.
 
 ### Security Headers
 
@@ -247,13 +236,6 @@ export async function GET() {
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
       ]
-    },
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" }
-      ]
     }
   ]
 }
@@ -266,31 +248,187 @@ export async function GET() {
 3. **Restrict access** - Limit which environments can access secrets
 4. **Rotate secrets** - Regularly update API keys
 
-### Protecting API Routes
+---
+
+## 6. Analytics & Monitoring
+
+See `references/analytics.md` for complete analytics setup.
+
+### Vercel Analytics
+
+Add to your layout:
 
 ```tsx
-// middleware.ts
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { Analytics } from '@vercel/analytics/react'
 
-export function middleware(request: NextRequest) {
-  const apiKey = request.headers.get('x-api-key')
-  
-  if (!apiKey || apiKey !== process.env.API_KEY) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-  
-  return NextResponse.next()
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        {children}
+        <Analytics />
+      </body>
+    </html>
+  )
 }
+```
 
-export const config = {
-  matcher: '/api/protected/:path*'
+Install:
+```bash
+bun add @vercel/analytics
+```
+
+### Speed Insights
+
+```tsx
+import { SpeedInsights } from '@vercel/speed-insights/react'
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        {children}
+        <SpeedInsights />
+      </body>
+    </html>
+  )
 }
+```
+
+Install:
+```bash
+bun add @vercel/speed-insights
+```
+
+### Web Vitals Monitoring
+
+Vercel automatically collects Core Web Vitals:
+- LCP (Largest Contentful Paint)
+- FID (First Input Delay)
+- INP (Interaction to Next Paint)
+- CLS (Cumulative Layout Shift)
+
+---
+
+## 7. Automated Deployments
+
+See `references/deploy-automation.md` for GitHub Actions setup.
+
+### GitHub Actions Workflow
+
+```yaml
+name: Vercel Production Deployment
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+          
+      - name: Install Dependencies
+        run: bun install
+        
+      - name: Type Check
+        run: bun run type-check
+        
+      - name: Build
+        run: bun run build
+        
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+```
+
+### Vercel CLI Deployment
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy to production
+vercel --prod
+
+# Deploy to preview
+vercel
+
+# Pull environment variables
+vercel env pull .env.local
 ```
 
 ---
 
-## 6. Performance Optimization
+## 8. Troubleshooting
+
+See `references/troubleshooting.md` for detailed troubleshooting.
+
+### Common Deployment Issues
+
+| Issue | Solution |
+|-------|----------|
+| Build fails | Check `bun run build` locally first |
+| 404 on refresh | Ensure rewrites handle client-side routing |
+| Env vars missing | Check dashboard settings |
+| Function timeout | Increase `maxDuration` |
+| Memory exceeded | Optimize imports, lazy load |
+
+### Debugging Build Errors
+
+```bash
+# Run build locally
+bun run build
+```
+
+### Common Error Codes
+
+| Code | Meaning | Fix |
+|------|---------|-----|
+| `FUN_001` | Function timeout | Increase maxDuration |
+| `FUN_002` | Memory limit | Optimize bundle size |
+| `BUILD_001` | Build command failed | Check local build |
+| `DEPLOY_001` | Deploy limit | Upgrade plan |
+
+---
+
+## 9. Next.js Configuration
+
+See `references/next-config.md` for complete Next.js config.
+
+### Recommended next.config.ts
+
+```ts
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  output: "standalone",
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    remotePatterns: [
+      { protocol: 'https', hostname: '**.cloudfront.net' },
+    ],
+  },
+  typescript: { ignoreBuildErrors: false },
+  eslint: { ignoreDuringBuilds: false },
+};
+
+export default nextConfig;
+```
+
+---
+
+## 10. Performance Optimization
 
 ### Image Optimization
 
@@ -299,38 +437,12 @@ export const config = {
   "images": {
     "sizes": [640, 750, 828, 1080, 1200, 1920, 2048],
     "formats": ["image/avif", "image/webp"],
-    "minimumCacheTTL": 31536000,
-    "domains": ["images.example.com"],
-    "remotePatterns": [
-      {
-        "protocol": "https",
-        "hostname": "**.cdn.example.com"
-      }
-    ]
+    "minimumCacheTTL": 31536000
   }
 }
 ```
 
-### Caching Strategies
-
-**Static assets:** Long cache with hash (automatic in Next.js)
-**API routes:** No cache for dynamic content
-```json
-{
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "headers": {
-        "Cache-Control": "no-store, max-age=0"
-      }
-    }
-  ]
-}
-```
-
 ### Bundle Analysis
-
-Use `@next/bundle-analyzer`:
 
 ```bash
 bun add -D @next/bundle-analyzer
@@ -349,183 +461,17 @@ Run: `ANALYZE=true bun run build`
 
 ---
 
-## 7. Troubleshooting
-
-### Common Deployment Issues
-
-| Issue | Solution |
-|-------|----------|
-| Build fails | Check `bun run build` locally first |
-| 404 on refresh | Ensure rewrites handle client-side routing |
-| Env vars missing | Check dashboard settings |
-| Function timeout | Increase `maxDuration` |
-| Memory exceeded | Optimize imports, lazy load |
-
-### Debugging Build Errors
-
-```bash
-# Run build locally
-bun run build
-
-# Check build output
-cat .next/output.txt
-```
-
-### Common Error Codes
-
-| Code | Meaning | Fix |
-|------|---------|-----|
-| `FUN_001` | Function timeout | Increase maxDuration |
-| `FUN_002` | Memory limit | Optimize bundle size |
-| `BUILD_001` | Build command failed | Check local build |
-| `DEPLOY_001` | Deploy limit | Upgrade plan |
-
----
-
-## 8. Next.js Configuration
-
-### Recommended next.config.ts
-
-```ts
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  // Output configuration
-  output: "standalone",
-  
-  // Image optimization
-  images: {
-    formats: ['image/avif', 'image/webp'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**.cloudfront.net',
-      },
-    ],
-  },
-  
-  // TypeScript
-  typescript: {
-    ignoreBuildErrors: false,
-  },
-  
-  // ESLint
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
-  
-  // Headers
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          { key: 'X-Frame-Options', value: 'DENY' },
-        ],
-      },
-    ];
-  },
-};
-
-export default nextConfig;
-```
-
-### Output Modes
-
-| Mode | Description | Use Case |
-|------|-------------|----------|
-| `export` | Static HTML export | Static sites |
-| `standalone` | Optimized for containers | Self-hosting |
-| `server` | Server-side rendering | SSR apps |
-| default | Auto (SSG + ISR) | Most Next.js apps |
-
----
-
-## 9. Deployment Workflow
-
-### Step-by-Step Guide
-
-1. **Connect Repository**
-   - Vercel Dashboard → Add Project → Import GitHub repo
-
-2. **Configure Project**
-   - Framework: Next.js
-   - Build Command: bun run build
-   - Install Command: bun install
-   - Output Directory: .next
-
-3. **Set Environment Variables**
-   - Project Settings → Environment Variables
-   - Add DATABASE_URL, API_KEYS, etc.
-
-4. **Deploy**
-   - Click Deploy → Wait for build → Review URL
-
-5. **Custom Domain (Optional)**
-   - Settings → Domains → Add custom domain
-   - Configure DNS records
-
-### CLI Deployment
-
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy to production
-vercel --prod
-
-# Deploy to preview
-vercel
-
-# Pull environment variables
-vercel env pull .env.local
-```
-
----
-
-## 10. Pro Tips
-
-### Speed Up Builds
-
-- Use `bun` instead of `npm` (2-3x faster)
-- Enable Turborepo (default on Pro)
-- Use `swc` compiler (automatic in Next.js)
-
-### Reduce Cold Starts
-
-```tsx
-// Keep functions warm with cron
-export const dynamic = 'force-dynamic'
-```
-
-### Monitor Performance
-
-Add `@vercel/analytics/react`:
-
-```tsx
-import { Analytics } from '@vercel/analytics/react'
-
-export default function RootLayout({ children }) {
-  return (
-    <html>
-      <body>
-        {children}
-        <Analytics />
-      </body>
-    </html>
-  )
-}
-```
-
-### Enable Preview Deployments
-
-Vercel automatically deploys PRs to preview URLs. Configure branch protection in GitHub for production safety.
-
----
-
 ## References
 
 - [Vercel Documentation](https://vercel.com/docs)
 - [Next.js on Vercel](https://vercel.com/docs/frameworks/full-stack/nextjs)
 - [vercel.json Schema](https://vercel.com/docs/project-configuration/vercel-json)
 - [Environment Variables](https://vercel.com/docs/projects/environment-variables)
+
+---
+
+## Related Skills
+
+- `vercel-react-best-practices` - React/Next.js performance optimization
+- `vercel-composition-patterns` - React composition patterns
+- `nextjs` - Next.js development guidance
