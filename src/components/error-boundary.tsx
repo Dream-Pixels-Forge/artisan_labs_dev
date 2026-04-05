@@ -58,7 +58,8 @@ export class ErrorBoundary extends Component<Props, State> {
               <p className="text-zinc-400">
                 An unexpected error occurred. Please try again or return to the homepage.
               </p>
-              {this.state.error && (
+              {/* Only show error details in development mode */}
+              {this.state.error && process.env.NODE_ENV === 'development' && (
                 <p className="text-xs text-zinc-500 font-mono bg-zinc-900/50 p-2 rounded">
                   {this.state.error.message}
                 </p>

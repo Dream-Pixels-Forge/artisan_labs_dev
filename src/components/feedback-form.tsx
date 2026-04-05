@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xaqllokg'
+// Formspree endpoint from environment variable (with fallback for development)
+const FORMSPREE_ENDPOINT = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT || 'https://formspree.io/f/xaqllokg'
 
 interface FormState {
   submitting: boolean
