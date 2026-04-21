@@ -21,7 +21,7 @@ Artisan Labs bridges the gap between video content and modern web storytelling. 
 - **Scroll Trigger Mapping** - Intelligently map frames to scroll positions using 8 advanced algorithms
 - **Export** - Generate developer-ready JSON or CSS configurations for your scrollytelling experience
 
-  <img width="1906" height="989" alt="Screenshot 2026-04-21 123907" src="https://github.com/user-attachments/assets/e2402d1f-5b46-4f77-b864-8b2a2586464a" />
+<img width="1906" height="989" alt="Screenshot 2026-04-21 123907" src="https://github.com/user-attachments/assets/e2402d1f-5b46-4f77-b864-8b2a2586464a" />
 
 
 ### Use Cases
