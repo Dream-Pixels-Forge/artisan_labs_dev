@@ -34,6 +34,8 @@ Artisan Labs bridges the gap between video content and modern web storytelling. 
 | **Education** | Develop interactive learning modules with scroll-synced content |
 | **E-commerce** | Design scroll-driven product demonstrations |
 
+https://youtu.be/i1N_mJvYLf8
+
 ---
 
 ## Features
