@@ -1,5 +1,7 @@
 # Artisan Labs
 
+<img width="1908" height="986" alt="Screenshot 2026-04-21 123848" src="https://github.com/user-attachments/assets/fb13e7c6-bf83-44e4-96bc-0aa9fdf0a53d" />
+
 <p align="center">
   <img src="https://img.shields.io/badge/version-0.2.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-Apache%202.0-green.svg" alt="License">
@@ -18,6 +20,9 @@ Artisan Labs bridges the gap between video content and modern web storytelling. 
 - **Video Frame Extraction** - Extract frames from any video with precise control
 - **Scroll Trigger Mapping** - Intelligently map frames to scroll positions using 8 advanced algorithms
 - **Export** - Generate developer-ready JSON or CSS configurations for your scrollytelling experience
+
+  <img width="1906" height="989" alt="Screenshot 2026-04-21 123907" src="https://github.com/user-attachments/assets/e2402d1f-5b46-4f77-b864-8b2a2586464a" />
+
 
 ### Use Cases
 
@@ -46,10 +51,16 @@ Artisan Labs bridges the gap between video content and modern web storytelling. 
 | **Golden Ratio** | Fibonacci-inspired spacing | Artistic storytelling |
 | **Step & Hold** | Discrete frame holds | Presentations |
 
+<img width="1889" height="989" alt="Screenshot 2026-04-21 123934" src="https://github.com/user-attachments/assets/356b9f97-7413-43cb-a00a-7122747a7d35" />
+
+
 ### Export Options
 
 - **JSON** - Developer-ready configuration with frame mapping
 - **CSS** - Scroll-timeline animation with fallbacks
+
+<img width="1916" height="988" alt="Screenshot 2026-04-21 123949" src="https://github.com/user-attachments/assets/940f2017-bf9d-4c44-a7e4-dc28abd7f92c" />
+
 
 ---
 
