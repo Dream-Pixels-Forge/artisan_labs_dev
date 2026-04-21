@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useSpring, type Variants } from 'framer-motion'
+import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useSpring, useInView, type Variants } from 'framer-motion'
 import {
   Film,
   Archive,
@@ -24,7 +24,6 @@ import {
   Gauge,
   Box,
   Cpu,
-  Clock,
   TrendingUp,
   Eye,
   Code2,
@@ -33,6 +32,10 @@ import {
   Timer,
   MessageSquare,
   Check,
+  Aperture,
+  Blend,
+  Focus,
+  Grid3X3,
 } from 'lucide-react'
 import { useAppStore } from '@/store/app-store'
 import type { Sequence } from '@/types'
@@ -44,26 +47,35 @@ const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+    transition: { staggerChildren: 0.06, delayChildren: 0.15 },
   },
 }
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 32 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
+    transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
   },
 }
 
 const heroTitleVariants: Variants = {
-  hidden: { opacity: 0, y: 20, filter: 'blur(8px)' },
+  hidden: { opacity: 0, y: 40, filter: 'blur(12px)' },
   visible: {
     opacity: 1,
     y: 0,
     filter: 'blur(0px)',
-    transition: { duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
+    transition: { duration: 1, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
+  },
+}
+
+const scaleInVariants: Variants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
   },
 }
 
@@ -152,14 +164,14 @@ function useTypewriter(texts: string[], typingSpeed = 50, pauseTime = 2000) {
 function FloatingParticles() {
   const particles = useMemo(
     () =>
-      Array.from({ length: 20 }, (_, i) => ({
+      Array.from({ length: 30 }, (_, i) => ({
         id: i,
         x: Math.random() * 100,
         y: Math.random() * 100,
-        size: Math.random() * 3 + 1,
-        duration: Math.random() * 8 + 6,
-        delay: Math.random() * 4,
-        opacity: Math.random() * 0.3 + 0.1,
+        size: Math.random() * 4 + 1,
+        duration: Math.random() * 10 + 8,
+        delay: Math.random() * 5,
+        opacity: Math.random() * 0.4 + 0.1,
       })),
     []
   )
@@ -177,15 +189,16 @@ function FloatingParticles() {
             height: p.size,
             background:
               p.id % 3 === 0
-                ? 'rgba(251,146,60,0.6)'
+                ? 'radial-gradient(circle, rgba(251,146,60,0.8), rgba(251,146,60,0))'
                 : p.id % 3 === 1
-                ? 'rgba(248,113,113,0.5)'
-                : 'rgba(251,191,36,0.4)',
+                ? 'radial-gradient(circle, rgba(248,113,113,0.6), rgba(248,113,113,0))'
+                : 'radial-gradient(circle, rgba(251,191,36,0.5), rgba(251,191,36,0))',
           }}
           animate={{
-            y: [0, -30, 0, 20, 0],
-            x: [0, 15, -10, 5, 0],
-            opacity: [p.opacity, p.opacity * 1.5, p.opacity * 0.5, p.opacity],
+            y: [0, -40, 0, 30, 0],
+            x: [0, 20, -15, 10, 0],
+            opacity: [p.opacity, p.opacity * 1.8, p.opacity * 0.3, p.opacity],
+            scale: [1, 1.3, 0.8, 1.1, 1],
           }}
           transition={{
             duration: p.duration,
@@ -246,7 +259,7 @@ function MiniScrollDemo() {
     if (!isAutoPlaying) return
     let animId: number
     const animate = () => {
-      progressRef.current += 0.004
+      progressRef.current += 0.003
       if (progressRef.current > 1) progressRef.current = 0
       setScrollProgress(progressRef.current)
       animId = requestAnimationFrame(animate)
@@ -267,18 +280,26 @@ function MiniScrollDemo() {
   return (
     <motion.div
       variants={itemVariants}
-      className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm"
+      className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] to-white/[0.02] backdrop-blur-xl shadow-2xl shadow-black/20"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/[0.03] via-transparent to-red-500/[0.03]" />
+      {/* Ambient glow */}
+      <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-orange-500/[0.08] to-transparent blur-3xl" />
+      <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-gradient-to-tr from-rose-500/[0.08] to-transparent blur-3xl" />
 
       <div className="relative p-6 sm:p-8">
+        {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold tracking-tight text-[#f0f0f0]">
-              Live Scrollytelling Demo
-            </h3>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-orange-500/[0.1] border border-orange-500/[0.2]">
+                <Play className="h-3 w-3 text-orange-400" />
+              </div>
+              <h3 className="text-base font-semibold tracking-tight text-[#f0f0f0]">
+                Live Scrollytelling Preview
+              </h3>
+            </div>
             <p className="text-xs text-white/40">
-              Drag the rail or watch the auto-play simulation
+              Interactive scroll-to-frame mapping demonstration
             </p>
           </div>
           <button
@@ -288,12 +309,12 @@ function MiniScrollDemo() {
                 progressRef.current = scrollProgress
               }
             }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.05] border border-white/[0.08] text-xs text-white/60 hover:text-white/80 hover:bg-white/[0.08] transition-all cursor-pointer"
+            className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.05] border border-white/[0.1] text-xs text-white/60 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.15] transition-all cursor-pointer"
           >
             {isAutoPlaying ? (
-              <><Pause className="h-3 w-3" /> Pause</>
+              <><Pause className="h-3.5 w-3.5" /> Pause</>
             ) : (
-              <><Play className="h-3 w-3" /> Play</>
+              <><Play className="h-3.5 w-3.5" /> Play</>
             )}
           </button>
         </div>
@@ -302,80 +323,118 @@ function MiniScrollDemo() {
         <div className="flex gap-4 sm:gap-6">
           {/* Frame preview */}
           <div
-            className="flex-1 rounded-xl overflow-hidden aspect-video relative"
+            className="flex-1 rounded-2xl overflow-hidden aspect-video relative group"
             style={{ backgroundColor: frameColors[currentFrame] }}
           >
             {/* Grid overlay */}
-            <div className="absolute inset-0 opacity-10" style={{
-              backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
-              backgroundSize: '20px 20px',
+            <div className="absolute inset-0 opacity-15" style={{
+              backgroundImage: 'linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)',
+              backgroundSize: '24px 24px',
             }} />
 
+            {/* Vignette effect */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 opacity-60" />
+
+            {/* Animated scanline */}
+            <motion.div
+              className="absolute inset-x-0 h-[1px] bg-white/30"
+              animate={{ top: ['0%', '100%'] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+              style={{ boxShadow: '0 0 20px rgba(255,255,255,0.3)' }}
+            />
+
             {/* Frame counter overlay */}
-            <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm rounded-md px-2 py-1 text-xs font-mono text-white/70">
-              F{String(currentFrame + 1).padStart(2, '0')}/{frameColors.length}
+            <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-xl rounded-xl px-3 py-1.5 text-xs font-mono text-white/80 border border-white/[0.1]">
+              <span className="text-orange-400">F{String(currentFrame + 1).padStart(2, '0')}</span>
+              <span className="text-white/40 mx-1">/</span>
+              <span>{frameColors.length}</span>
             </div>
 
             {/* Progress bar overlay */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10">
+            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-white/10">
               <motion.div
-                className="h-full bg-gradient-to-r from-orange-500 to-red-500"
+                className="h-full bg-gradient-to-r from-orange-500 via-red-500 to-orange-400"
                 style={{ width: `${scrollProgress * 100}%` }}
                 transition={{ duration: 0.05 }}
               />
             </div>
 
-            {/* Center crosshair */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-20">
-              <div className="w-8 h-8 border border-white/50 rounded-full" />
+            {/* Center focus point */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <motion.div
+                className="w-12 h-12 border-2 border-white/40 rounded-full"
+                animate={{
+                  scale: [1, 1.1, 1],
+                  opacity: [0.4, 0.6, 0.4],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+              <div className="absolute w-1 h-1 bg-white/60 rounded-full" />
             </div>
           </div>
 
           {/* Scroll rail */}
           <div
             ref={containerRef}
-            className="hidden sm:flex flex-col items-center gap-2 cursor-pointer py-2"
+            className="hidden sm:flex flex-col items-center gap-3 cursor-pointer py-2"
             onMouseMove={handleManualScroll}
           >
             <span className="text-[9px] font-mono text-white/30">0%</span>
-            <div className="relative w-2 flex-1 bg-white/[0.06] rounded-full overflow-hidden min-h-[160px]">
+            <div className="relative w-2.5 flex-1 bg-white/[0.06] rounded-full overflow-hidden min-h-[180px] border border-white/[0.08]">
               <motion.div
-                className="absolute bottom-0 left-0 right-0 rounded-full bg-gradient-to-t from-orange-500 to-red-400"
+                className="absolute bottom-0 left-0 right-0 rounded-full bg-gradient-to-t from-orange-600 via-orange-500 to-red-400"
                 style={{ height: `${scrollProgress * 100}%` }}
                 transition={{ duration: 0.05 }}
-              />
+              >
+                {/* Inner glow */}
+                <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/20 to-transparent opacity-50" />
+              </motion.div>
               {/* Scrubber dot */}
               <motion.div
-                className="absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white shadow-lg shadow-orange-500/30 border-2 border-orange-400"
-                style={{ bottom: `calc(${scrollProgress * 100}% - 8px)` }}
+                className="absolute left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-gradient-to-br from-white to-gray-200 shadow-xl shadow-orange-500/30 border-2 border-orange-400"
+                style={{ bottom: `calc(${scrollProgress * 100}% - 10px)` }}
                 transition={{ duration: 0.05 }}
-              />
+              >
+                <div className="absolute inset-1 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 opacity-80" />
+              </motion.div>
             </div>
             <span className="text-[9px] font-mono text-white/30">100%</span>
           </div>
         </div>
 
         {/* Filmstrip */}
-        <div className="mt-4 flex gap-1 overflow-hidden rounded-lg">
+        <div className="mt-5 flex gap-1.5 overflow-hidden rounded-xl p-2 bg-white/[0.03] border border-white/[0.06]">
           {frameColors.map((color, i) => (
-            <div
+            <motion.div
               key={i}
-              className="flex-1 h-6 sm:h-8 rounded-sm transition-all duration-100"
+              className="flex-1 h-8 rounded-md transition-all duration-200"
               style={{
                 backgroundColor: color,
-                opacity: i <= currentFrame ? 1 : 0.2,
-                boxShadow: i === currentFrame ? '0 0 8px rgba(251,146,60,0.4)' : 'none',
               }}
+              animate={{
+                opacity: i <= currentFrame ? 1 : 0.25,
+                scale: i === currentFrame ? 1.05 : 1,
+                boxShadow: i === currentFrame ? '0 0 12px rgba(251,146,60,0.5)' : 'none',
+              }}
+              transition={{ duration: 0.15 }}
             />
           ))}
         </div>
 
         {/* Stats row */}
-        <div className="mt-4 flex items-center gap-6 text-[10px] font-mono text-white/30">
-          <span>Progress: {(scrollProgress * 100).toFixed(1)}%</span>
-          <span>Frame: {currentFrame + 1}/{frameColors.length}</span>
-          <span>FPS: 24</span>
-          <span>Mode: Ease In-Out</span>
+        <div className="mt-4 flex items-center justify-between text-[10px] font-mono text-white/30">
+          <div className="flex items-center gap-4">
+            <span>Progress: <span className="text-orange-400">{(scrollProgress * 100).toFixed(1)}%</span></span>
+            <span>Frame: <span className="text-white/50">{currentFrame + 1}/{frameColors.length}</span></span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span>FPS: <span className="text-emerald-400/60">24</span></span>
+            <span>Mode: <span className="text-rose-400/60">Ease In-Out</span></span>
+          </div>
         </div>
       </div>
     </motion.div>
@@ -404,7 +463,7 @@ function WorkflowPipeline({ onNavigate }: { onNavigate: (screen: 'sequencer' | '
       sublabel: 'Import Video',
       color: 'from-orange-500/20 to-orange-500/5',
       iconColor: 'text-orange-400',
-      borderColor: 'border-orange-500/20 hover:border-orange-500/40',
+      borderColor: 'border-orange-500/30 hover:border-orange-500/50',
       screen: 'sequencer' as const,
     },
     {
@@ -413,7 +472,7 @@ function WorkflowPipeline({ onNavigate }: { onNavigate: (screen: 'sequencer' | '
       sublabel: 'Generate Frames',
       color: 'from-amber-500/20 to-amber-500/5',
       iconColor: 'text-amber-400',
-      borderColor: 'border-amber-500/20 hover:border-amber-500/40',
+      borderColor: 'border-amber-500/30 hover:border-amber-500/50',
       screen: 'sequencer' as const,
     },
     {
@@ -422,7 +481,7 @@ function WorkflowPipeline({ onNavigate }: { onNavigate: (screen: 'sequencer' | '
       sublabel: 'Scroll Triggers',
       color: 'from-rose-500/20 to-rose-500/5',
       iconColor: 'text-rose-400',
-      borderColor: 'border-rose-500/20 hover:border-rose-500/40',
+      borderColor: 'border-rose-500/30 hover:border-rose-500/50',
       screen: 'scrollTrigger' as const,
     },
     {
@@ -431,7 +490,7 @@ function WorkflowPipeline({ onNavigate }: { onNavigate: (screen: 'sequencer' | '
       sublabel: 'Deploy',
       color: 'from-emerald-500/20 to-emerald-500/5',
       iconColor: 'text-emerald-400',
-      borderColor: 'border-emerald-500/20 hover:border-emerald-500/40',
+      borderColor: 'border-emerald-500/30 hover:border-emerald-500/50',
       screen: 'archive' as const,
     },
   ]
@@ -439,27 +498,36 @@ function WorkflowPipeline({ onNavigate }: { onNavigate: (screen: 'sequencer' | '
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveStep((prev) => (prev + 1) % steps.length)
-    }, 3000)
+    }, 2500)
     return () => clearInterval(interval)
   }, [steps.length])
 
   return (
-    <motion.section variants={itemVariants} className="space-y-5">
+    <motion.section variants={itemVariants} className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-white/[0.05]">
+        <div className="p-2 rounded-lg bg-white/[0.05] border border-white/[0.08]">
           <Workflow className="h-4 w-4 text-white/50" />
         </div>
         <div>
           <h2 className="text-xs font-medium uppercase tracking-widest text-white/30">
             Workflow Pipeline
           </h2>
-          <p className="text-[10px] text-white/20 font-mono">4-step scrollytelling pipeline</p>
+          <p className="text-[10px] text-white/25 font-mono">4-step scrollytelling pipeline</p>
         </div>
       </div>
 
       <div className="relative">
-        {/* Connecting line */}
-        <div className="absolute top-1/2 left-0 right-0 h-px bg-white/[0.06] -translate-y-1/2 hidden sm:block" />
+        {/* Animated connecting line */}
+        <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-500/20 to-transparent -translate-y-1/2 hidden sm:block" />
+        
+        {/* Animated progress line */}
+        <motion.div 
+          className="absolute top-1/2 left-0 h-px bg-gradient-to-r from-orange-500 via-amber-500 to-rose-500 -translate-y-1/2 hidden sm:block"
+          initial={{ width: '0%' }}
+          animate={{ width: `${(activeStep / (steps.length - 1)) * 100}%` }}
+          transition={{ duration: 0.5 }}
+          style={{ boxShadow: '0 0 20px rgba(251,146,60,0.5)' }}
+        />
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {steps.map((step, i) => {
@@ -471,13 +539,14 @@ function WorkflowPipeline({ onNavigate }: { onNavigate: (screen: 'sequencer' | '
               <motion.button
                 key={step.label}
                 onClick={() => onNavigate(step.screen)}
-                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                whileHover={{ y: -6, transition: { duration: 0.3 } }}
                 whileTap={{ scale: 0.97 }}
                 className={`
-                  relative group cursor-pointer rounded-xl border p-4 sm:p-5 backdrop-blur-sm transition-all duration-500 text-left
+                  relative group cursor-pointer rounded-2xl border p-4 sm:p-5 backdrop-blur-xl transition-all duration-500 text-left
                   bg-gradient-to-b ${step.color}
                   ${step.borderColor}
-                  ${isActive ? 'ring-1 ring-white/10' : ''}
+                  ${isActive ? 'ring-1 ring-white/15 shadow-xl shadow-orange-500/10' : 'shadow-lg'}
+                  hover:shadow-2xl
                 `}
               >
                 {/* Animated border glow for active step */}
@@ -487,60 +556,70 @@ function WorkflowPipeline({ onNavigate }: { onNavigate: (screen: 'sequencer' | '
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.8 }}
-                      className="absolute -inset-px rounded-xl opacity-30"
+                      className="absolute -inset-px rounded-2xl opacity-40"
                       style={{
-                        boxShadow: `0 0 20px rgba(251,146,60,0.15), 0 0 40px rgba(251,146,60,0.05)`,
+                        background: `linear-gradient(135deg, rgba(251,146,60,0.2), transparent 50%)`,
+                        boxShadow: `0 0 30px rgba(251,146,60,0.2), 0 0 60px rgba(251,146,60,0.1)`,
                       }}
                     />
                   )}
                 </AnimatePresence>
 
-                <div className="relative space-y-3">
+                {/* Corner accent */}
+                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <ChevronRight className="h-4 w-4 text-white/40" />
+                </div>
+
+                <div className="relative space-y-4">
                   {/* Step number + icon */}
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono text-white/20">
+                    <motion.span 
+                      className={`text-[10px] font-mono transition-colors duration-500 ${isActive ? 'text-orange-400/60' : 'text-white/15'}`}
+                    >
                       {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <div
-                      className={`p-2 rounded-lg transition-all duration-500 ${
+                    </motion.span>
+                    <motion.div
+                      className={`p-2.5 rounded-xl transition-all duration-500 ${
                         isActive
-                          ? 'bg-white/10 scale-110'
+                          ? 'bg-white/15 scale-110 shadow-lg shadow-orange-500/20'
                           : isPast
-                          ? 'bg-white/[0.06]'
+                          ? 'bg-white/[0.08]'
                           : 'bg-white/[0.04]'
                       }`}
+                      animate={isActive ? { rotate: [0, 5, -5, 0] } : { rotate: 0 }}
+                      transition={isActive ? { duration: 0.5, repeat: Infinity, repeatDelay: 2 } : {}}
                     >
                       <StepIcon
                         className={`h-4 w-4 transition-all duration-500 ${step.iconColor} ${
-                          isActive ? 'opacity-100' : 'opacity-40'
+                          isActive ? 'opacity-100' : isPast ? 'opacity-60' : 'opacity-40'
                         }`}
                       />
-                    </div>
+                    </motion.div>
                   </div>
 
                   {/* Labels */}
-                  <div className="space-y-0.5">
+                  <div className="space-y-1">
                     <p
                       className={`text-sm font-semibold transition-colors duration-500 ${
-                        isActive ? 'text-[#f0f0f0]' : 'text-white/50'
+                        isActive ? 'text-[#f0f0f0]' : 'text-white/50 group-hover:text-white/70'
                       }`}
                     >
                       {step.label}
                     </p>
-                    <p className="text-[10px] text-white/25">{step.sublabel}</p>
+                    <p className="text-[10px] text-white/30">{step.sublabel}</p>
                   </div>
 
                   {/* Status indicator */}
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <div
-                      className={`h-1 flex-1 rounded-full bg-white/[0.06] overflow-hidden`}
+                      className={`h-1.5 flex-1 rounded-full bg-white/[0.06] overflow-hidden`}
                     >
                       <motion.div
-                        className="h-full rounded-full bg-gradient-to-r from-orange-500 to-red-400"
+                        className="h-full rounded-full bg-gradient-to-r from-orange-500 via-red-500 to-orange-400"
                         animate={isActive ? { width: ['0%', '100%'] } : { width: isPast ? '100%' : '0%' }}
                         transition={
                           isActive
-                            ? { duration: 2.5, ease: 'easeInOut' }
+                            ? { duration: 2, ease: 'easeInOut' }
                             : { duration: 0.3 }
                         }
                       />
@@ -550,13 +629,13 @@ function WorkflowPipeline({ onNavigate }: { onNavigate: (screen: 'sequencer' | '
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0.5, 1, 0.5] }}
                         transition={{ duration: 1.5, repeat: Infinity }}
-                        className="text-[9px] text-orange-400 font-mono"
+                        className="text-[8px] text-orange-400 font-mono tracking-wider"
                       >
                         ACTIVE
                       </motion.span>
                     )}
                     {isPast && (
-                      <span className="text-[9px] text-emerald-400/60 font-mono">DONE</span>
+                      <span className="text-[8px] text-emerald-400/70 font-mono tracking-wider">DONE</span>
                     )}
                   </div>
                 </div>
@@ -591,58 +670,75 @@ function AnimatedMetricCard({
   return (
     <motion.div
       variants={itemVariants}
-      whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
-      className="group relative overflow-hidden bg-white/[0.03] border border-white/[0.08] rounded-xl p-5 backdrop-blur-sm transition-all hover:border-white/[0.15] hover:bg-white/[0.06]"
+      whileHover={{ scale: 1.02, transition: { duration: 0.3 } }}
+      className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] to-white/[0.02] backdrop-blur-xl transition-all duration-500 hover:border-white/[0.15] hover:shadow-2xl hover:shadow-orange-500/5"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
+      {/* Animated gradient border on hover */}
+      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+        style={{
+          background: 'linear-gradient(135deg, rgba(251,146,60,0.1), transparent 50%, rgba(248,113,113,0.05))',
+        }}
+      />
+
+      {/* Inner glow */}
+      <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-gradient-to-br from-orange-500/[0.08] to-transparent blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
       {/* Mini sparkline */}
       {sparkData && sparkData.length > 0 && (
-        <div className="absolute bottom-0 left-0 right-0 h-8 opacity-20 group-hover:opacity-40 transition-opacity">
+        <div className="absolute bottom-0 left-0 right-0 h-12 opacity-30 group-hover:opacity-50 transition-opacity">
           <svg viewBox="0 0 100 30" className="w-full h-full" preserveAspectRatio="none">
             <defs>
               <linearGradient id={`spark-${label}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="currentColor" stopOpacity="0.4" />
+                <stop offset="0%" stopColor="currentColor" stopOpacity="0.5" />
                 <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
               </linearGradient>
             </defs>
             <path
               d={`M0,30 ${sparkData
-                .map((v, i) => `L${(i / (sparkData.length - 1)) * 100},${30 - v * 25}`)
+                .map((v, i) => `L${(i / (sparkData.length - 1)) * 100},${30 - v * 28}`)
                 .join(' ')} L100,30 Z`}
               fill={`url(#spark-${label})`}
               className={accent?.includes('emerald') ? 'text-emerald-400' : 'text-orange-400'}
             />
             <path
               d={`M${sparkData
-                .map((v, i) => `${(i / (sparkData.length - 1)) * 100},${30 - v * 25}`)
+                .map((v, i) => `${(i / (sparkData.length - 1)) * 100},${30 - v * 28}`)
                 .join(' L')}`}
               fill="none"
               stroke="currentColor"
-              strokeWidth="0.8"
+              strokeWidth="1.5"
               className={accent?.includes('emerald') ? 'text-emerald-400' : 'text-orange-400'}
             />
           </svg>
         </div>
       )}
 
-      <div className="relative flex items-start justify-between">
-        <div className="space-y-2">
-          <p className="text-[10px] font-medium uppercase tracking-widest text-white/35">
+      <div className="relative p-5">
+        <div className="flex items-start justify-between mb-3">
+          <div className={`p-2.5 rounded-xl bg-gradient-to-br from-white/[0.08] to-white/[0.04] border border-white/[0.1] transition-all duration-500 group-hover:scale-110 group-hover:border-white/[0.2] ${accent ? '' : ''}`}>
+            <Icon className={`h-4 w-4 ${accent ?? 'text-white/50'}`} />
+          </div>
+          {sparkData && (
+            <div className="flex items-center gap-1 text-[9px] font-mono text-emerald-400/60">
+              <TrendingUp className="h-3 w-3" />
+              <span>+{(Math.random() * 20 + 10).toFixed(0)}%</span>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <p className="text-[9px] font-medium uppercase tracking-widest text-white/35">
             {label}
           </p>
           <motion.p
-            className={`text-2xl font-bold tracking-tight tabular-nums ${accent ?? 'text-[#f0f0f0]'}`}
-            initial={{ opacity: 0, y: 8 }}
+            className={`text-3xl font-bold tracking-tight tabular-nums bg-gradient-to-br from-white to-white/70 bg-clip-text text-transparent ${accent ?? ''}`}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: delay + 0.3, duration: 0.5 }}
+            transition={{ delay: delay + 0.2, duration: 0.6 }}
           >
             {value}
           </motion.p>
-          {subtitle && <p className="text-[10px] text-white/25">{subtitle}</p>}
-        </div>
-        <div className={`p-2.5 rounded-lg bg-white/[0.05] text-white/30 transition-colors group-hover:text-white/50 ${accent ? '' : ''}`}>
-          <Icon className="h-4 w-4" />
+          {subtitle && <p className="text-[10px] text-white/30">{subtitle}</p>}
         </div>
       </div>
     </motion.div>
@@ -673,42 +769,57 @@ function FeatureCard({
   return (
     <motion.div
       variants={itemVariants}
-      whileHover={{ y: -6, transition: { duration: 0.3 } }}
+      whileHover={{ y: -8, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="group relative cursor-pointer overflow-hidden bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 backdrop-blur-sm transition-all hover:border-white/[0.15] hover:bg-white/[0.05]"
+      className="group relative cursor-pointer overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] to-white/[0.02] backdrop-blur-xl transition-all duration-700 hover:border-white/[0.15] hover:shadow-2xl hover:shadow-orange-500/5"
     >
-      {/* Hover glow */}
-      <div
-        className="absolute -top-20 -right-20 h-40 w-40 rounded-full opacity-0 blur-3xl transition-opacity duration-700 group-hover:opacity-20"
-        style={{ backgroundColor: accentBg }}
+      {/* Animated gradient border */}
+      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+        style={{
+          background: `linear-gradient(135deg, ${accentBg.replace('/10', '/15')}, transparent 60%)`,
+        }}
       />
 
-      <div className="relative space-y-4">
+      {/* Hover glow effect */}
+      <div
+        className="absolute -top-32 -right-32 h-64 w-64 rounded-full opacity-0 blur-3xl transition-all duration-700 group-hover:opacity-25"
+        style={{ backgroundColor: accentBg.replace('/10', '/30') }}
+      />
+
+      {/* Corner accent */}
+      <div className="absolute top-0 right-0 w-20 h-20 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+        <div className="absolute top-4 right-4 w-8 h-8 rounded-full" style={{ background: `radial-gradient(circle, ${accentBg.replace('/10', '/40')}, transparent)` }} />
+      </div>
+
+      <div className="relative p-6 space-y-5">
         <div className="flex items-start justify-between">
-          <div className={`inline-flex p-3 rounded-xl ${accentBg} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
+          <motion.div
+            className={`inline-flex p-3 rounded-xl ${accentBg} transition-all duration-500 group-hover:scale-115 group-hover:rotate-6 group-hover:shadow-lg group-hover:shadow-orange-500/10`}
+          >
             <Icon className={`h-5 w-5 ${accentColor}`} />
-          </div>
-          <div className="flex items-center gap-1.5 text-[10px] font-mono text-white/20 opacity-0 group-hover:opacity-100 transition-opacity">
+          </motion.div>
+          <div className="flex items-center gap-1.5 text-[9px] font-mono text-white/15 opacity-0 group-hover:opacity-100 transition-all duration-500">
             <span>0{index + 1}</span>
+            <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
           </div>
         </div>
 
-        <div className="space-y-2">
-          <h3 className="text-base font-semibold text-[#f0f0f0] tracking-tight">
+        <div className="space-y-2.5">
+          <h3 className="text-base font-semibold text-[#f0f0f0] tracking-tight group-hover:text-white transition-colors">
             {title}
           </h3>
-          <p className="text-sm leading-relaxed text-white/35 group-hover:text-white/45 transition-colors">
+          <p className="text-sm leading-relaxed text-white/40 group-hover:text-white/55 transition-colors duration-500">
             {description}
           </p>
         </div>
 
         {tags && (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2 pt-2">
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="px-2 py-0.5 text-[9px] font-mono tracking-wider uppercase rounded-md bg-white/[0.04] text-white/25 border border-white/[0.05]"
+                className="px-2.5 py-1 text-[9px] font-mono tracking-wider uppercase rounded-lg bg-white/[0.05] text-white/30 border border-white/[0.06] transition-all duration-300 group-hover:bg-white/[0.08] group-hover:text-white/45 group-hover:border-white/[0.12]"
               >
                 {tag}
               </span>
@@ -716,9 +827,11 @@ function FeatureCard({
           </div>
         )}
 
-        <div className="flex items-center gap-1.5 text-xs font-medium text-white/20 transition-colors group-hover:text-white/50">
-          <span>Explore</span>
-          <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+        <div className="flex items-center gap-2 text-xs font-medium text-white/20 transition-all duration-500 group-hover:text-white/60 pt-2">
+          <span className="flex items-center gap-1.5">
+            Explore
+            <ArrowRight className="h-3 w-3 transition-all duration-500 group-hover:translate-x-1.5" />
+          </span>
         </div>
       </div>
     </motion.div>
@@ -776,17 +889,23 @@ function LiveActivityFeed() {
   return (
     <motion.div
       variants={itemVariants}
-      className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm"
+      className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] to-white/[0.02] backdrop-blur-xl shadow-2xl shadow-black/20"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.01] to-transparent" />
+      {/* Ambient glow */}
+      <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-gradient-to-br from-emerald-500/[0.06] to-transparent blur-3xl" />
 
       <div className="relative p-5 sm:p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2.5">
-            <Activity className="h-4 w-4 text-white/30" />
-            <h3 className="text-xs font-medium uppercase tracking-widest text-white/30">
-              Live Activity
-            </h3>
+            <div className="p-2 rounded-xl bg-orange-500/[0.1] border border-orange-500/[0.2]">
+              <Activity className="h-4 w-4 text-orange-400" />
+            </div>
+            <div>
+              <h3 className="text-xs font-medium uppercase tracking-widest text-white/35">
+                Live Activity
+              </h3>
+              <p className="text-[9px] text-white/25 font-mono">Real-time events</p>
+            </div>
           </div>
           <StatusDot color="emerald" />
         </div>
@@ -801,16 +920,16 @@ function LiveActivityFeed() {
                   initial={{ opacity: 0, x: -20, height: 0 }}
                   animate={{ opacity: 1, x: 0, height: 'auto' }}
                   exit={{ opacity: 0, x: 20, height: 0 }}
-                  transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="flex items-start gap-3 py-2.5 border-b border-white/[0.04] last:border-0"
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex items-start gap-3 py-3 border-b border-white/[0.05] last:border-0"
                 >
-                  <div className="mt-0.5 p-1.5 rounded-md bg-white/[0.04]">
-                    <Icon className={`h-3 w-3 ${activity.color}`} />
+                  <div className="mt-0.5 p-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+                    <Icon className={`h-3.5 w-3.5 ${activity.color}`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-white/50 leading-relaxed truncate">{activity.text}</p>
+                    <p className="text-xs text-white/55 leading-relaxed truncate">{activity.text}</p>
                   </div>
-                  <span className="text-[9px] font-mono text-white/15 whitespace-nowrap mt-0.5">
+                  <span className="text-[9px] font-mono text-white/20 whitespace-nowrap mt-0.5">
                     {activity.time}
                   </span>
                 </motion.div>
@@ -836,22 +955,25 @@ function CapabilityStats() {
   return (
     <motion.div
       variants={itemVariants}
-      className="flex items-center justify-center gap-6 sm:gap-10 py-6 border-y border-white/[0.04]"
+      className="flex items-center justify-center gap-8 sm:gap-12 py-8 border-y border-white/[0.06] backdrop-blur-sm"
     >
       {capabilities.map((cap, i) => {
         const CapIcon = cap.icon
         return (
           <motion.div
             key={cap.label}
-            className="flex items-center gap-2 sm:gap-3 text-center"
-            initial={{ opacity: 0, y: 10 }}
+            className="group flex flex-col items-center gap-2 text-center"
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 + i * 0.15 }}
+            transition={{ delay: 0.6 + i * 0.1 }}
+            whileHover={{ scale: 1.05 }}
           >
-            <CapIcon className="h-3.5 w-3.5 text-white/15" />
-            <div>
-              <p className="text-sm sm:text-base font-bold text-white/70 font-mono">{cap.value}</p>
-              <p className="text-[9px] uppercase tracking-wider text-white/20 hidden sm:block">{cap.label}</p>
+            <div className="p-2 rounded-xl bg-white/[0.03] border border-white/[0.06] transition-all duration-500 group-hover:bg-white/[0.06] group-hover:border-white/[0.12]">
+              <CapIcon className="h-4 w-4 text-white/20 transition-colors group-hover:text-orange-400/60" />
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-lg sm:text-xl font-bold text-white/80 font-mono">{cap.value}</p>
+              <p className="text-[8px] uppercase tracking-wider text-white/25">{cap.label}</p>
             </div>
           </motion.div>
         )
@@ -879,76 +1001,138 @@ function HeroSceneCard({ onNavigate }: { onNavigate: (screen: 'sequencer') => vo
   return (
     <motion.div
       variants={itemVariants}
-      className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm group"
+      className="group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] to-white/[0.02] backdrop-blur-xl shadow-2xl shadow-black/30"
     >
-      {/* Background image */}
+      {/* Background image with overlay */}
       <div className="absolute inset-0">
         <img
           src="/hero-scene.png"
           alt="Scrollytelling pipeline visualization"
-          className="w-full h-full object-cover opacity-40 group-hover:opacity-50 transition-opacity duration-700"
+          className="w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity duration-1000"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-[#0a0a0a]/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/85 to-[#0a0a0a]/50" />
+        
+        {/* Animated gradient orbs */}
+        <motion.div
+          className="absolute top-20 right-20 w-64 h-64 rounded-full bg-gradient-to-br from-orange-500/[0.08] to-transparent blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 5,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+        <motion.div
+          className="absolute bottom-20 left-20 w-80 h-80 rounded-full bg-gradient-to-tr from-rose-500/[0.06] to-transparent blur-3xl"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 1,
+          }}
+        />
       </div>
 
-      <div className="relative px-6 py-8 sm:px-10 sm:py-12">
-        <div className="flex items-start justify-between gap-6">
-          <div className="space-y-4 flex-1">
-            <div className="flex items-center gap-2">
+      <div className="relative px-6 py-10 sm:px-10 sm:py-14">
+        <div className="flex items-start justify-between gap-8">
+          <div className="space-y-5 flex-1">
+            <motion.div 
+              className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full border border-orange-500/[0.3] bg-orange-500/[0.1] backdrop-blur-sm"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
+            >
               <Sparkles className="h-3.5 w-3.5 text-orange-400" />
-              <span className="text-[10px] font-mono uppercase tracking-widest text-white/40">
-                Quick Start
+              <span className="text-[9px] font-mono uppercase tracking-widest text-orange-300/80">
+                Quick Start Guide
               </span>
-            </div>
+            </motion.div>
 
-            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#f0f0f0]">
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#f0f0f0] leading-tight">
               Ready to create something{' '}
-              <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-orange-400 via-red-400 to-orange-500 bg-clip-text text-transparent">
                 extraordinary
               </span>
               ?
             </h2>
 
             {/* Terminal-style typing animation */}
-            <div className="bg-black/40 rounded-lg p-4 border border-white/[0.06] max-w-md">
-              <div className="flex items-center gap-1.5 mb-3">
-                <div className="w-2 h-2 rounded-full bg-red-500/60" />
-                <div className="w-2 h-2 rounded-full bg-yellow-500/60" />
-                <div className="w-2 h-2 rounded-full bg-green-500/60" />
-                <span className="ml-2 text-[9px] font-mono text-white/20">artisan-labs</span>
+            <motion.div 
+              className="bg-black/50 backdrop-blur-xl rounded-2xl p-5 border border-white/[0.08] max-w-md shadow-xl shadow-black/20"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
+                </div>
+                <span className="ml-2 text-[9px] font-mono text-white/20">artisan-labs-cli</span>
               </div>
-              <p className="font-mono text-sm text-white/60">
-                <span className="text-orange-400/80">{'>'}</span> {typewriterText}
-                <span className="animate-pulse text-orange-400">|</span>
-              </p>
-            </div>
+              <div className="space-y-2">
+                <p className="font-mono text-sm text-white/60">
+                  <span className="text-orange-400/80">{'>'}</span> {typewriterText}
+                  <motion.span 
+                    className="inline-block w-[2px] h-4 ml-0.5 bg-orange-400"
+                    animate={{ opacity: [1, 0] }}
+                    transition={{ duration: 0.8, repeat: Infinity }}
+                  />
+                </p>
+              </div>
+            </motion.div>
 
             <motion.button
               onClick={() => onNavigate('sequencer')}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.97 }}
-              className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-semibold shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 transition-shadow cursor-pointer"
+              className="group inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-semibold shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all cursor-pointer"
             >
-              <Upload className="h-4 w-4" />
-              Start Creating
+                <motion.div
+                  animate={{ rotate: [0, 360] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                >
+                  <Upload className="h-4 w-4" />
+                </motion.div>
+                <span>Start Creating</span>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </motion.button>
           </div>
 
           {/* Right side - 8 mode badges */}
-          <div className="hidden lg:flex flex-col gap-1.5 pt-2">
+          <div className="hidden lg:flex flex-col gap-2 pt-1">
             {['Linear', 'Ease-In', 'Ease-Out', 'Ease In-Out', 'Velocity', 'Scene', 'Golden', 'Step'].map(
               (mode, i) => (
                 <motion.div
                   key={mode}
-                  initial={{ opacity: 0, x: 10 }}
+                  initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.8 + i * 0.08 }}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05] hover:border-white/[0.10] transition-colors"
+                  transition={{ delay: 0.6 + i * 0.06 }}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all duration-500 ${
+                    i === 3 
+                      ? 'bg-orange-500/[0.15] border border-orange-500/[0.3]' 
+                      : 'bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12]'
+                  }`}
                 >
-                  <div className={`w-1.5 h-1.5 rounded-full ${
-                    i === 3 ? 'bg-orange-400' : 'bg-white/20'
-                  }`} />
-                  <span className={`text-[10px] font-mono ${i === 3 ? 'text-white/60' : 'text-white/25'}`}>
+                  <motion.div 
+                    className={`w-2 h-2 rounded-full ${
+                      i === 3 ? 'bg-orange-400' : 'bg-white/20'
+                    }`}
+                    animate={i === 3 ? {
+                      scale: [1, 1.3, 1],
+                      opacity: [0.6, 1, 0.6],
+                    } : {}}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                  <span className={`text-[9px] font-mono ${i === 3 ? 'text-white/70' : 'text-white/30'}`}>
                     {mode}
                   </span>
                 </motion.div>
@@ -996,25 +1180,31 @@ export default function Dashboard() {
         }}
       />
 
-      {/* ── Ambient Glow ── */}
-      <div className="pointer-events-none absolute top-[-200px] left-1/2 -translate-x-1/2 h-[500px] w-[800px] rounded-full bg-gradient-to-b from-orange-500/[0.06] via-red-500/[0.02] to-transparent blur-3xl" />
-      <div className="pointer-events-none absolute bottom-[-100px] right-[-200px] h-[400px] w-[600px] rounded-full bg-gradient-to-tl from-rose-500/[0.03] to-transparent blur-3xl" />
+      {/* ── Ambient Glow Layers ── */}
+      <div className="pointer-events-none absolute top-[-300px] left-1/2 -translate-x-1/2 h-[600px] w-[1000px] rounded-full bg-gradient-to-b from-orange-500/[0.08] via-red-500/[0.03] to-transparent blur-3xl" />
+      <div className="pointer-events-none absolute bottom-[-200px] right-[-300px] h-[500px] w-[700px] rounded-full bg-gradient-to-tl from-rose-500/[0.05] via-orange-500/[0.02] to-transparent blur-3xl" />
+      <div className="pointer-events-none absolute top-1/2 left-[-200px] h-[400px] w-[600px] rounded-full bg-gradient-to-r from-amber-500/[0.04] to-transparent blur-3xl" />
 
       {/* ── Floating Particles ── */}
       <FloatingParticles />
 
       <motion.div
-        className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-12 sm:space-y-16"
+        className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12 sm:py-20 space-y-16 sm:space-y-20"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {/* ════════════════════ Hero ════════════════════ */}
         <motion.header className="space-y-6 text-center" variants={heroTitleVariants}>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-[10px] font-medium tracking-widest text-white/50 uppercase">
+          <motion.div 
+            className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.05] px-4 py-2 text-[10px] font-medium tracking-widest text-white/50 uppercase backdrop-blur-sm"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+          >
             <Sparkles className="h-3 w-3 text-orange-400" />
             Scrollytelling Toolkit
-          </div>
+          </motion.div>
 
           <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-[#f0f0f0] leading-[1.05]">
             ARTISAN{' '}
@@ -1023,20 +1213,21 @@ export default function Dashboard() {
             </span>
           </h1>
 
-          <p className="font-mono text-xs sm:text-sm tracking-[0.25em] text-white/35 uppercase">
+          <p className="font-mono text-xs sm:text-sm tracking-[0.3em] text-white/35 uppercase">
             Scrollytelling Sequence Optimizer
           </p>
 
           {/* Animated gradient line */}
-          <div className="mx-auto w-48 h-[2px] overflow-hidden rounded-full bg-white/10">
+          <div className="mx-auto w-64 h-[2px] overflow-hidden rounded-full bg-white/[0.08]">
             <motion.div
-              className="h-full w-1/2 rounded-full bg-gradient-to-r from-orange-500 via-red-400 to-orange-500"
-              animate={{ x: ['-100%', '200%'] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut', repeatDelay: 1 }}
+              className="h-full w-1/3 rounded-full bg-gradient-to-r from-orange-500 via-red-400 to-orange-500"
+              animate={{ x: ['-300%', '300%'] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', repeatDelay: 2 }}
+              style={{ boxShadow: '0 0 20px rgba(251,146,60,0.6)' }}
             />
           </div>
 
-          <p className="mx-auto max-w-xl text-sm sm:text-base leading-relaxed text-white/35">
+          <p className="mx-auto max-w-xl text-sm sm:text-base leading-relaxed text-white/40">
             Transform videos into optimized image sequences for stunning scroll-driven storytelling experiences.
           </p>
         </motion.header>
@@ -1045,13 +1236,18 @@ export default function Dashboard() {
         <CapabilityStats />
 
         {/* ════════════════════ System Metrics ════════════════════ */}
-        <section className="space-y-4">
-          <motion.h2
+        <section className="space-y-5">
+          <motion.div 
+            className="flex items-center gap-2"
             variants={itemVariants}
-            className="text-xs font-medium uppercase tracking-widest text-white/30"
           >
-            System Metrics
-          </motion.h2>
+            <div className="p-1.5 rounded-lg bg-white/[0.05] border border-white/[0.08]">
+              <Gauge className="h-3.5 w-3.5 text-white/40" />
+            </div>
+            <h2 className="text-xs font-medium uppercase tracking-widest text-white/30">
+              System Metrics
+            </h2>
+          </motion.div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <AnimatedMetricCard
@@ -1105,13 +1301,18 @@ export default function Dashboard() {
         </div>
 
         {/* ════════════════════ Feature Showcase ════════════════════ */}
-        <section className="space-y-4">
-          <motion.h2
+        <section className="space-y-5">
+          <motion.div 
+            className="flex items-center gap-2"
             variants={itemVariants}
-            className="text-xs font-medium uppercase tracking-widest text-white/30"
           >
-            Core Capabilities
-          </motion.h2>
+            <div className="p-1.5 rounded-lg bg-white/[0.05] border border-white/[0.08]">
+              <Aperture className="h-3.5 w-3.5 text-white/40" />
+            </div>
+            <h2 className="text-xs font-medium uppercase tracking-widest text-white/30">
+              Core Capabilities
+            </h2>
+          </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <FeatureCard
@@ -1150,31 +1351,33 @@ export default function Dashboard() {
         {/* ════════════════════ Feedback Form ════════════════════ */}
         <motion.section
           variants={itemVariants}
-          className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm"
+          className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] to-white/[0.02] backdrop-blur-xl shadow-2xl shadow-black/20"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/[0.03] via-transparent to-red-500/[0.02]" />
-          <div className="relative px-6 py-10 sm:px-10 sm:py-8">
-            <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
-              <div className="space-y-4">
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/[0.05] via-transparent to-red-500/[0.03]" />
+          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-orange-500/[0.06] to-transparent blur-3xl" />
+          
+          <div className="relative px-6 py-10 sm:px-10 sm:py-12">
+            <div className="grid gap-10 lg:grid-cols-2 lg:items-start">
+              <div className="space-y-5">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-white/[0.05]">
-                    <MessageSquare className="h-4 w-4 text-white/50" />
+                  <div className="p-2.5 rounded-xl bg-orange-500/[0.1] border border-orange-500/[0.2]">
+                    <MessageSquare className="h-4 w-4 text-orange-400" />
                   </div>
                   <h2 className="text-lg font-semibold tracking-tight text-[#f0f0f0]">
                     Share Your Feedback
                   </h2>
                 </div>
-                <p className="text-sm text-white/35 leading-relaxed">
-                  Help us improve Artisan Labs! Tell us what you think, suggest features, 
+                <p className="text-sm text-white/40 leading-relaxed">
+                  Help us improve Artisan Labs! Tell us what you think, suggest features,
                   or report any issues you've encountered while using the app.
                 </p>
-                <div className="flex items-center gap-4 text-xs text-white/25">
-                  <span className="flex items-center gap-1.5">
-                    <Check className="h-3 w-3 text-emerald-400/60" />
+                <div className="flex flex-wrap items-center gap-4 text-xs text-white/30">
+                  <span className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+                    <Check className="h-3.5 w-3.5 text-emerald-400/70" />
                     No account needed
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <Check className="h-3 w-3 text-emerald-400/60" />
+                  <span className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+                    <Check className="h-3.5 w-3.5 text-emerald-400/70" />
                     Quick response
                   </span>
                 </div>
@@ -1189,18 +1392,25 @@ export default function Dashboard() {
         {/* ════════════════════ What is Scrollytelling ════════════════════ */}
         <motion.section
           variants={itemVariants}
-          className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm"
+          className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] to-white/[0.02] backdrop-blur-xl shadow-2xl shadow-black/20"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/[0.03] via-transparent to-red-500/[0.02]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-500/[0.05] via-transparent to-rose-500/[0.03]" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-gradient-to-tr from-rose-500/[0.06] to-transparent blur-3xl" />
+          
           <div className="relative px-6 py-10 sm:px-10 sm:py-14 space-y-8">
-            <div className="space-y-2">
-              <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#f0f0f0]">
-                Why Scrollytelling?
-              </h2>
-              <div className="w-12 h-[2px] rounded-full bg-gradient-to-r from-orange-500 to-red-400" />
+            <div className="space-y-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-white/[0.05] border border-white/[0.08]">
+                  <Aperture className="h-4 w-4 text-white/40" />
+                </div>
+                <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#f0f0f0]">
+                  Why Scrollytelling?
+                </h2>
+              </div>
+              <div className="w-16 h-[2px] rounded-full bg-gradient-to-r from-orange-500 via-red-500 to-orange-500" />
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {[
                 {
                   title: 'Cinematic Experiences',
@@ -1220,17 +1430,18 @@ export default function Dashboard() {
               ].map((item, i) => (
                 <motion.div
                   key={item.title}
-                  initial={{ opacity: 0, y: 15 }}
+                  initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.15, duration: 0.5 }}
-                  className="space-y-3 p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] transition-colors"
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ delay: i * 0.12, duration: 0.6 }}
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  className="group space-y-3 p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] hover:border-white/[0.12] transition-all duration-500"
                 >
-                  <div className="p-2 rounded-lg bg-white/[0.04] w-fit">
-                    <item.icon className="h-4 w-4 text-orange-400/70" />
+                  <div className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] w-fit transition-all duration-500 group-hover:bg-orange-500/[0.1] group-hover:border-orange-500/[0.2]">
+                    <item.icon className="h-4 w-4 text-orange-400/70 transition-colors group-hover:text-orange-400" />
                   </div>
-                  <h3 className="text-sm font-semibold text-white/60">{item.title}</h3>
-                  <p className="text-sm leading-relaxed text-white/30">{item.desc}</p>
+                  <h3 className="text-sm font-semibold text-white/65 group-hover:text-white/80 transition-colors">{item.title}</h3>
+                  <p className="text-sm leading-relaxed text-white/35 group-hover:text-white/45 transition-colors">{item.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -1240,9 +1451,14 @@ export default function Dashboard() {
         {/* ── Footer ── */}
         <motion.footer
           variants={itemVariants}
-          className="pt-4 pb-8 text-center"
+          className="pt-8 pb-12 text-center"
         >
-          <p className="text-[10px] text-white/15 font-mono tracking-[0.2em] uppercase">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="w-8 h-[1px] bg-gradient-to-r from-transparent to-orange-500/30" />
+            <div className="w-2 h-2 rounded-full bg-orange-500/40" />
+            <div className="w-8 h-[1px] bg-gradient-to-l from-transparent to-orange-500/30" />
+          </div>
+          <p className="text-[10px] text-white/20 font-mono tracking-[0.25em] uppercase">
             Artisan Labs &middot; Built for Creators &middot; v1.0
           </p>
         </motion.footer>

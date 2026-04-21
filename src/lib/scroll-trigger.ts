@@ -1,3 +1,5 @@
+"use client";
+
 // =============================================================================
 // Artisan Labs — Scroll Trigger Event Calculation Engine
 // =============================================================================
@@ -538,7 +540,7 @@ export function getFrameAtScroll(
 
 export function exportScrollTriggerJSON(map: ScrollTriggerMap): string {
   const totalScroll = map.scrollDistancePx
-  
+
   // Calculate percentage positions for CSS
   const triggerPoints = map.events.map((e) => {
     const percent = totalScroll > 0
@@ -552,29 +554,6 @@ export function exportScrollTriggerJSON(map: ScrollTriggerMap): string {
       ...(e.sceneLabel ? { scene: e.sceneLabel } : {}),
     }
   })
-
-  // Generate JavaScript usage code
-  const jsUsage = `
-/* JavaScript usage example:
-const scrollVideo = document.querySelector('.scroll-video');
-const frames = [...]; // your frame images
-const events = ${JSON.stringify(triggerPoints, null, 2)};
-
-window.addEventListener('scroll', () => {
-  const scrollY = window.scrollY;
-  const scrollRange = document.body.scrollHeight - window.innerHeight;
-  const progress = Math.min(scrollY / scrollRange, 1);
-  
-  // Find closest frame
-  let currentFrame = 0;
-  for (const event of events) {
-    if (progress * 100 >= event.scrollPercent) {
-      currentFrame = event.frameIndex;
-    }
-  }
-  scrollVideo.src = frames[currentFrame];
-});
-*/`
 
   return JSON.stringify({
     version: '1.0.0',
@@ -600,7 +579,104 @@ window.addEventListener('scroll', () => {
     },
     events: triggerPoints,
     stats: map.stats,
-  }, null, 2) + jsUsage
+  }, null, 2)
+}
+
+// ─── Export as JavaScript Usage Code ────────────────────────────────────────
+
+export function exportScrollTriggerJS(map: ScrollTriggerMap): string {
+  const totalScroll = map.scrollDistancePx
+
+  // Calculate percentage positions
+  const triggerPoints = map.events.map((e) => ({
+    scrollPx: Math.round(e.scrollPosition),
+    scrollPercent: totalScroll > 0
+      ? Math.round((e.scrollPosition / totalScroll) * 10000) / 100
+      : 0,
+    frameIndex: e.frameIndex,
+    progress: Math.round(e.progress * 10000) / 100,
+    ...(e.sceneLabel ? { scene: e.sceneLabel } : {}),
+  }))
+
+  return `/**
+ * Artisan Labs — Scroll Trigger Integration
+ * Generated: ${new Date().toISOString()}
+ * Mode: ${map.config.mode} | Frames: ${map.eventCount} | Scroll: ${totalScroll}px
+ */
+
+// Scroll trigger configuration
+const scrollConfig = ${JSON.stringify({
+    mode: map.config.mode,
+    scrollDistance: map.config.scrollDistance,
+    scrollUnit: map.config.scrollUnit,
+    triggerStart: map.config.triggerStart,
+    triggerEnd: map.config.triggerEnd,
+    overshootBehavior: map.config.overshootBehavior,
+    pinElement: map.config.pinElement,
+    smoothing: map.config.smoothing,
+    snapToFrame: map.config.snapToFrame,
+  }, null, 2)};
+
+// Frame trigger events
+const scrollEvents = ${JSON.stringify(triggerPoints, null, 2)};
+
+// Frame images (replace with your actual frame URLs)
+const frameImages = [
+${Array.from({ length: Math.min(map.eventCount, 5) }, (_, i) => `  '/frames/frame-${String(i).padStart(4, '0')}.webp'`).join(',\n')}
+  // ... add remaining ${map.eventCount - 5} frames
+];
+
+// Initialize scroll video
+function initScrollVideo() {
+  const scrollVideo = document.querySelector('.scroll-video');
+  if (!scrollVideo) {
+    console.error('Scroll video element not found');
+    return;
+  }
+
+  // Preload frames
+  const loadedFrames = [];
+  frameImages.forEach((src, index) => {
+    const img = new Image();
+    img.src = src;
+    loadedFrames[index] = img;
+  });
+
+  // Calculate scroll range
+  const scrollMax = document.body.scrollHeight - window.innerHeight;
+
+  // Handle scroll events
+  window.addEventListener('scroll', () => {
+    const scrollY = Math.min(window.scrollY, scrollMax);
+    const progress = scrollMax > 0 ? scrollY / scrollMax : 0;
+
+    // Find current frame based on progress
+    let currentFrame = 0;
+    for (const event of scrollEvents) {
+      if (progress * 100 >= event.scrollPercent) {
+        currentFrame = event.frameIndex;
+      } else {
+        break;
+      }
+    }
+
+    // Update video frame
+    if (loadedFrames[currentFrame]) {
+      scrollVideo.src = loadedFrames[currentFrame].src;
+    }
+  });
+}
+
+// Auto-initialize when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initScrollVideo);
+} else {
+  initScrollVideo();
+}
+
+// Export for module usage
+export { scrollConfig, scrollEvents, initScrollVideo };
+`
 }
 
 // ─── Export as CSS Animation Keyframes ──────────────────────────────────────
@@ -631,18 +707,18 @@ export function exportScrollTriggerCSS(
   options: CSSExportOptions | string = {}
 ): string {
   // Handle string overload for backward compatibility
-  const opts = typeof options === 'string' 
+  const opts = typeof options === 'string'
     ? { ...DEFAULT_CSS_OPTIONS, selector: options }
     : { ...DEFAULT_CSS_OPTIONS, ...options }
-  
-  const { 
-    selector, 
-    variableName, 
-    includeFallback, 
-    includeJS, 
-    keyframeName 
+
+  const {
+    selector,
+    variableName,
+    includeFallback,
+    includeJS,
+    keyframeName
   } = opts
-  
+
   const totalScroll = map.scrollDistancePx
   const eventCount = map.events.length
 
@@ -674,7 +750,8 @@ export function exportScrollTriggerCSS(
     const percent = totalScroll > 0
       ? Math.round((event.scrollPosition / totalScroll) * 10000) / 100
       : 0
-    css += `  ${percent.toFixed(2)}% { ${variableName}: ${event.frameIndex}; }\n`
+    css += `  ${percent.toFixed(2)}% { ${variableName}: ${event.frameIndex}; }
+`
   }
   css += `}
 
@@ -689,27 +766,30 @@ ${selector} {
   // 3. Fallback for browsers without scroll-timeline
   if (includeFallback) {
     css += `/* ─── JavaScript Fallback (All Browsers) ──────────────────────────────── */
-/* 
+/*
  * For browsers without scroll-timeline support, use this JavaScript:
- * 
+ *
  * const frames = [...]; // your frame image URLs
- * const events = [\n`
-    
+ * const events = [
+`
+
     for (let i = 0; i < Math.min(map.events.length, 10); i++) {
       const event = map.events[i]
       const percent = totalScroll > 0
         ? Math.round((event.scrollPosition / totalScroll) * 10000) / 100
         : 0
-      css += ` *   { percent: ${percent.toFixed(2)}, frame: ${event.frameIndex} },\n`
+      css += ` *   { percent: ${percent.toFixed(2)}, frame: ${event.frameIndex} },
+`
     }
     if (map.events.length > 10) {
-      css += ` *   // ... ${map.events.length - 10} more events\n`
+      css += ` *   // ... ${map.events.length - 10} more events
+`
     }
     css += ` * ];
- * 
+ *
  * const container = document.querySelector('${selector}');
  * const scrollMax = document.body.scrollHeight - window.innerHeight;
- * 
+ *
  * window.addEventListener('scroll', () => {
  *   const progress = Math.min(window.scrollY / scrollMax, 1) * 100;
  *   const event = events.find(e => progress <= e.percent) || events[events.length - 1];
