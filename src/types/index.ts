@@ -44,6 +44,7 @@ export interface VideoInfo {
   type: string;
   file: File;
   url: string;
+  frameTimestamps?: number[];
 }
 
 export interface SystemMetrics {

@@ -453,6 +453,15 @@ export default function Sequencer() {
 
       if (err instanceof DOMException && err.name === 'AbortError') {
         toast.info('Extraction cancelled')
+      } else if (
+        err instanceof DOMException && 
+        err.name === 'QuotaExceededError'
+      ) {
+        // Handle localStorage quota exceeded
+        toast.error('Storage quota exceeded', {
+          description: 'Too many sequences stored. Clear old sequences from the Archive and try again.',
+          duration: 8000,
+        })
       } else {
         toast.error(
           err instanceof Error ? err.message : 'An unexpected error occurred'

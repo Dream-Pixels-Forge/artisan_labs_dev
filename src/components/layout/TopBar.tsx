@@ -1,34 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { Clapperboard } from 'lucide-react'
-import { useAppStore } from '@/store/app-store'
 import { Sidebar } from '@/components/layout/Sidebar'
 
 export function TopBar() {
-  const [time, setTime] = useState('')
-
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date()
-      setTime(
-        now.toLocaleTimeString('en-US', {
-          hour12: false,
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        })
-      )
-    }
-
-    updateTime()
-    const interval = setInterval(updateTime, 1000)
-    return () => clearInterval(interval)
-  }, [])
-
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between px-4 sm:px-6 bg-black/80 backdrop-blur-xl border-b border-white/5">
+      <header className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between px-4 sm:px-6 bg-black/80 backdrop-blur-xl border-b border-white/[0.06]">
         {/* Left: App name */}
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2">
@@ -37,11 +15,6 @@ export function TopBar() {
               ARTISAN LABS
             </span>
           </div>
-        </div>
-
-        {/* Right: Current time */}
-        <div className="font-mono text-xs text-white/40 tracking-wider">
-          {time}
         </div>
       </header>
 
@@ -58,6 +31,7 @@ export function TopBar() {
 
 import { motion } from 'framer-motion'
 import { LayoutDashboard, Film, Archive, MousePointerClick } from 'lucide-react'
+import { useAppStore } from '@/store/app-store'
 import type { Screen } from '@/types'
 
 const mobileNavItems: { icon: typeof LayoutDashboard; label: string; screen: Screen }[] = [

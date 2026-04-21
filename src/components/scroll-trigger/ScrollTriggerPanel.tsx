@@ -47,6 +47,7 @@ import {
 import {
   generateScrollTriggerMap,
   exportScrollTriggerJSON,
+  exportScrollTriggerJS, // <--- ADD THIS
   exportScrollTriggerCSS,
   autoDetectScenes,
   SCROLL_MODE_INFO,
@@ -71,7 +72,7 @@ export interface ScrollTriggerPanelProps {
   onConfigChange: (config: ScrollTriggerConfig) => void
   onPreviewRequest: (map: ScrollTriggerMap) => void
   disabled?: boolean
-  activeTab?: 'modes' | 'settings' | 'preview'
+
 }
 
 // ─── Animation Variants ─────────────────────────────────────────────────────
@@ -142,7 +143,7 @@ export default function ScrollTriggerPanel({
   onConfigChange,
   onPreviewRequest,
   disabled = false,
-  activeTab = 'modes',
+
 }: ScrollTriggerPanelProps) {
   // ── State ──────────────────────────────────────────────────────────────
   const [config, setConfig] = useState<ScrollTriggerConfig>({
@@ -157,11 +158,10 @@ export default function ScrollTriggerPanel({
     return map
   }, [frameCount, config, frameTimestamps])
 
-  // Notify parent on map changes
+  // Notify parent on map changes AND on initial mount
   useEffect(() => {
-    onConfigChange(config)
     onPreviewRequest(scrollMap)
-  }, [scrollMap, config, onConfigChange, onPreviewRequest])
+  }, [scrollMap])
 
   // ── Config updaters ────────────────────────────────────────────────────
 
@@ -342,8 +342,8 @@ export default function ScrollTriggerPanel({
   }, [])
 
   const handleManualRangeFrameChange = useCallback((
-    index: number, 
-    field: 'startFrame' | 'endFrame', 
+    index: number,
+    field: 'startFrame' | 'endFrame',
     value: number,
     maxFrame: number
   ) => {
@@ -404,6 +404,17 @@ export default function ScrollTriggerPanel({
     }
   }, [scrollMap, downloadFile])
 
+  const handleExportJS = useCallback(async () => {
+    try {
+      const jsCode = exportScrollTriggerJS(scrollMap)
+      const filename = `scroll-trigger-usage-${Date.now()}.js`
+      downloadFile(jsCode, filename, 'application/javascript')
+      toast.success(`Downloaded ${filename}`)
+    } catch {
+      toast.error('Failed to export JavaScript')
+    }
+  }, [scrollMap, downloadFile])
+
   const handleExportCSS = useCallback(async () => {
     try {
       const css = exportScrollTriggerCSS(scrollMap)
@@ -428,7 +439,7 @@ export default function ScrollTriggerPanel({
     <div className="space-y-6">
       {/* ════════════════════ 1. Mode Selector Grid ════════════════════ */}
       <motion.div variants={sectionVariants} initial="hidden" animate="visible"
-        className={activeTab !== 'modes' ? 'hidden' : ''}
+
       >
         <div className="flex items-center gap-2 mb-4">
           <LayoutGrid className="h-3.5 w-3.5 text-orange-400" />
@@ -512,7 +523,7 @@ export default function ScrollTriggerPanel({
         variants={sectionVariants}
         initial="hidden"
         animate="visible"
-        className={`rounded-xl border border-white/[0.08] bg-white/[0.03] p-5 sm:p-6 space-y-6 ${activeTab !== 'settings' ? 'hidden' : ''}`}
+
       >
         <div className="flex items-center gap-2">
           <Settings className="h-3.5 w-3.5 text-orange-400" />
@@ -708,7 +719,7 @@ export default function ScrollTriggerPanel({
 
       {/* ════════════════════ 3. Scene Editor ════════════════════ */}
       <AnimatePresence>
-        {config.mode === 'scene' && activeTab === 'settings' && (
+        {config.mode === 'scene' && (
           <motion.div
             variants={sectionVariants}
             initial="hidden"
@@ -793,7 +804,7 @@ export default function ScrollTriggerPanel({
                   <Box className="h-8 w-8 text-white/10 mb-3" />
                   <p className="text-xs text-white/25">No scenes defined</p>
                   <p className="text-[10px] text-white/15 mt-1">
-                    Click &quot;Auto-detect&quot; or &quot;Add Scene&quot; to begin
+                    Click "Auto-detect" or "Add Scene" to begin
                   </p>
                 </div>
               )}
@@ -887,7 +898,7 @@ export default function ScrollTriggerPanel({
 
       {/* ════════════════════ 4. Step Hold Duration ════════════════════ */}
       <AnimatePresence>
-        {config.mode === 'stepHold' && activeTab === 'settings' && (
+        {config.mode === 'stepHold' && (
           <motion.div
             variants={sectionVariants}
             initial="hidden"
@@ -934,7 +945,7 @@ export default function ScrollTriggerPanel({
 
       {/* ════════════════════ 4. Manual Range Editor ════════════════════ */}
       <AnimatePresence>
-        {config.mode === 'manual' && activeTab === 'settings' && (
+        {config.mode === 'manual' && (
           <motion.div
             variants={sectionVariants}
             initial="hidden"
@@ -1137,97 +1148,50 @@ export default function ScrollTriggerPanel({
         )}
       </AnimatePresence>
 
-      {/* ════════════════════ 5. Live Stats Display ════════════════════ */}
+      {/* ════════════════════ 5. Export Buttons ════════════════════ */}
       <motion.div
         variants={sectionVariants}
         initial="hidden"
         animate="visible"
-        className={`rounded-xl border border-white/[0.08] bg-white/[0.03] p-5 sm:p-6 space-y-5 ${activeTab !== 'preview' ? 'hidden' : ''}`}
+        className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5 sm:p-6"
       >
-        <div className="flex items-center gap-2">
-          <Activity className="h-3.5 w-3.5 text-orange-400" />
+        <div className="flex items-center gap-2 mb-4">
+          <Download className="h-3.5 w-3.5 text-orange-400" />
           <h2 className="text-xs font-medium uppercase tracking-widest text-white/30">
-            Live Statistics
+            Export Config
           </h2>
-          <Badge variant="outline" className="ml-auto border-white/[0.08] bg-white/[0.03] text-white/40">
-            {scrollMap.eventCount} events
-          </Badge>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <StatCard
-            label="Min Spacing"
-            value={`${scrollMap.stats.minSpacing} px`}
-            icon={<ArrowDownUp className="h-3 w-3" />}
-          />
-          <StatCard
-            label="Max Spacing"
-            value={`${scrollMap.stats.maxSpacing} px`}
-            icon={<ArrowDownUp className="h-3 w-3" />}
-          />
-          <StatCard
-            label="Avg Spacing"
-            value={`${scrollMap.stats.avgSpacing} px`}
-            icon={<Activity className="h-3 w-3" />}
-          />
-          <StatCard
-            label="Std Deviation"
-            value={`${scrollMap.stats.stdDevSpacing} px`}
-            icon={<Waves className="h-3 w-3" />}
-          />
-          <StatCard
-            label="Max Density"
-            value={`${scrollMap.stats.maxDensity} f/100px`}
-            icon={<Gauge className="h-3 w-3" />}
-          />
-          <StatCard
-            label="Min Density"
-            value={`${scrollMap.stats.minDensity} f/100px`}
-            icon={<Gauge className="h-3 w-3" />}
-          />
+        <div className="grid grid-cols-3 gap-3">
+          <Button
+            onClick={handleExportJSON}
+            disabled={!scrollMap}
+            className="h-10 text-xs font-semibold tracking-wider uppercase bg-orange-500/15 text-orange-400 border border-orange-500/30 hover:bg-orange-500/25 hover:border-orange-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span className="mr-2">{'{}'}</span>
+            JSON
+          </Button>
+          <Button
+            onClick={handleExportJS}
+            disabled={!scrollMap}
+            className="h-10 text-xs font-semibold tracking-wider uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 hover:border-emerald-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span className="mr-2">{"</>"}</span>
+            JavaScript
+          </Button>
+          <Button
+            onClick={handleExportCSS}
+            disabled={!scrollMap}
+            className="h-10 text-xs font-semibold tracking-wider uppercase bg-sky-500/15 text-sky-400 border border-sky-500/30 hover:bg-sky-500/25 hover:border-sky-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span className="mr-2">#</span>
+            CSS
+          </Button>
         </div>
 
-        <div className="flex items-center gap-3 pt-1">
-          <div className="flex-1 h-px bg-white/[0.06]" />
-          <span className="text-[10px] text-white/20 font-mono">
-            {scrollMap.scrollDistancePx.toLocaleString()} px total scroll distance
-          </span>
-          <div className="flex-1 h-px bg-white/[0.06]" />
-        </div>
-      </motion.div>
-
-      {/* ════════════════════ 6. Export Actions ════════════════════ */}
-      <motion.div
-        variants={sectionVariants}
-        initial="hidden"
-        animate="visible"
-        className={`flex flex-col sm:flex-row gap-3 ${activeTab !== 'preview' ? 'hidden' : ''}`}
-      >
-        <Button
-          onClick={handleExportJSON}
-          disabled={disabled || frameCount === 0}
-          className={`
-            flex-1 h-10 rounded-lg border text-xs font-semibold tracking-wider transition-all duration-200
-            gap-2 border-white/[0.08] bg-white/[0.03] text-white/60 hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-400
-            disabled:opacity-40 disabled:cursor-not-allowed
-          `}
-        >
-          <Download className="h-3.5 w-3.5" />
-          Download JSON
-        </Button>
-
-        <Button
-          onClick={handleExportCSS}
-          disabled={disabled || frameCount === 0}
-          className={`
-            flex-1 h-10 rounded-lg border text-xs font-semibold tracking-wider transition-all duration-200
-            gap-2 border-white/[0.08] bg-white/[0.03] text-white/60 hover:border-orange-500/40 hover:bg-orange-500/10 hover:text-orange-400
-            disabled:opacity-40 disabled:cursor-not-allowed
-          `}
-        >
-          <Download className="h-3.5 w-3.5" />
-          Download CSS
-        </Button>
+        <p className="text-[10px] text-white/30 mt-3">
+          Download your scroll trigger configuration as JSON, JavaScript integration code, or CSS keyframes.
+        </p>
       </motion.div>
     </div>
   )

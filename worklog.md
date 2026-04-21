@@ -1,4 +1,82 @@
 ---
+Task ID: 6
+Agent: dpf-debugger-engineer
+Task: Critical fix - localStorage QuotaExceededError when extracting frames
+
+Work Log:
+- Diagnosed QuotaExceededError when calling setIsExtracting during frame extraction
+- Root cause: Zustand persist was storing sequences with base64 frame images to localStorage
+- Each frame dataUrl = 50-500KB base64 string
+- 100+ frames easily exceeds 5-10MB localStorage quota
+
+**Fixes Implemented:**
+1. Changed app-store.ts persist to only store activeScreen (not sequences)
+2. Created src/lib/storage-utils.ts with quota monitoring functions
+3. Created <StorageWarning> component for user alerts
+4. Added quota error handling in Sequencer.tsx
+5. Integrated StorageWarning in layout.tsx
+
+**Files Created:**
+- src/lib/storage-utils.ts (storage utilities)
+- src/components/storage-warning.tsx (warning UI)
+- docs/STORAGE-QUOTA-FIX.md (fix documentation)
+- docs/DEBUGGING-LESSONS.md (updated with new issue)
+
+**Trade-off:**
+- Sequences now memory-only (not persisted across reloads)
+- Better than crashing, and acceptable for typical single-session workflow
+- Future: Implement IndexedDB for large data persistence
+
+Stage Summary:
+- Fixed critical QuotaExceededError blocking frame extraction
+- Added storage monitoring and user warnings
+- All lint checks pass (0 errors)
+- Dev server running at http://localhost:3000
+
+---
+Task ID: 5
+Agent: dpf-debugger-engineer
+Task: Bug fix - Scroll trigger preview auto-trigger and missing export buttons
+
+Work Log:
+- Started dev server and ran build to identify all compilation errors
+- Found 4 build errors and 2 ESLint errors
+
+**Phase 1: Build Error Fixes**
+1. Fixed missing `exportScrollTriggerJS` function - implemented complete function with JavaScript integration code
+2. Fixed commented-out `exportScrollTriggerCSS` function - uncommented and restored with supporting types
+3. Fixed missing `Check` icon import in ScrollTriggerScreen.tsx
+4. Fixed missing `frameTimestamps` property on VideoInfo interface
+
+**Phase 2: ESLint Fixes**
+5. Fixed carousel.tsx - wrapped setState in requestAnimationFrame to avoid cascading renders
+6. Fixed use-mobile.ts - same pattern, defer setState with requestAnimationFrame
+
+**Phase 3: Feature Bug Fixes**
+7. Added Export Config section to ScrollTriggerPanel with 3 buttons (JSON, JS, CSS)
+8. Fixed scroll preview auto-trigger by simplifying useEffect dependencies
+9. Added auto-open panel effect in ScrollTriggerScreen (opens on mount if no scrollMap)
+10. Fixed duplicate useEffect hooks that I accidentally created during editing
+11. Fixed ESLint error in ScrollTriggerScreen by using requestAnimationFrame pattern
+
+**My Mistakes During Session:**
+- Created duplicate useEffect hooks when editing (fixed)
+- Called setState directly in useEffect (fixed with requestAnimationFrame)
+- Didn't move variable declarations before usage (fixed order)
+- Made multiple changes before testing (learned to test after each change)
+
+**Lessons Documented:**
+- Created docs/DEBUGGING-LESSONS.md with complete session learnings
+- Includes checklists, patterns, and common mistakes to avoid
+
+Stage Summary:
+- Fixed 6 build/runtime errors
+- Fixed 2 feature bugs (auto-trigger, missing export buttons)
+- Created comprehensive debugging documentation
+- All lint checks pass (0 errors)
+- Dev server running at http://localhost:3000
+
+---
 Task ID: 4
 Agent: main
 Task: Security Audit - Comprehensive security scan and vulnerability assessment

@@ -51,7 +51,8 @@ export const useAppStore = create<AppState>()(
       activeScreen: 'dashboard',
       setActiveScreen: (screen) => set({ activeScreen: screen }),
 
-      // Sequences — persisted to localStorage
+      // Sequences — NOT persisted due to large base64 frame data
+      // Stored in memory only to avoid localStorage quota exceeded errors
       sequences: [],
       addSequence: (sequence) =>
         set((state) => ({
@@ -99,10 +100,12 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'artisan-labs-store',
-      // Only persist sequences to avoid bloating localStorage with
-      // transient state such as currentVideo URLs, boot flags, etc.
+      // Persist only small metadata, not sequences with base64 frames
+      // Each frame's dataUrl can be 50-500KB, easily exceeding localStorage quota
       partialize: (state) => ({
-        sequences: state.sequences,
+        // Don't persist sequences - they contain large base64 image data
+        // Instead, persist nothing or just small preferences in the future
+        activeScreen: state.activeScreen,
       }),
     }
   )
