@@ -1,0 +1,95 @@
+/**
+ * Cutting-Edge CSS Scroll-Timeline Scrollytelling Sequence
+ * Built with zero JavaScript overhead, running 100% on the compositor thread.
+ */
+
+/* Setup CSS keyframes for background-swapping sequence */
+@keyframes play-influencia-sequence {
+  0.00% { background-image: url('/desktop/frame-001.webp'); }
+  3.23% { background-image: url('/desktop/frame-002.webp'); }
+  6.45% { background-image: url('/desktop/frame-003.webp'); }
+  9.68% { background-image: url('/desktop/frame-004.webp'); }
+  12.90% { background-image: url('/desktop/frame-005.webp'); }
+  16.13% { background-image: url('/desktop/frame-006.webp'); }
+  19.35% { background-image: url('/desktop/frame-007.webp'); }
+  22.58% { background-image: url('/desktop/frame-008.webp'); }
+  25.81% { background-image: url('/desktop/frame-009.webp'); }
+  29.03% { background-image: url('/desktop/frame-010.webp'); }
+  32.26% { background-image: url('/desktop/frame-011.webp'); }
+  35.48% { background-image: url('/desktop/frame-012.webp'); }
+  38.71% { background-image: url('/desktop/frame-013.webp'); }
+  41.94% { background-image: url('/desktop/frame-014.webp'); }
+  45.16% { background-image: url('/desktop/frame-015.webp'); }
+  48.39% { background-image: url('/desktop/frame-016.webp'); }
+  51.61% { background-image: url('/desktop/frame-017.webp'); }
+  54.84% { background-image: url('/desktop/frame-018.webp'); }
+  58.06% { background-image: url('/desktop/frame-019.webp'); }
+  61.29% { background-image: url('/desktop/frame-020.webp'); }
+  64.52% { background-image: url('/desktop/frame-021.webp'); }
+  67.74% { background-image: url('/desktop/frame-022.webp'); }
+  70.97% { background-image: url('/desktop/frame-023.webp'); }
+  74.19% { background-image: url('/desktop/frame-024.webp'); }
+  77.42% { background-image: url('/desktop/frame-025.webp'); }
+  80.65% { background-image: url('/desktop/frame-026.webp'); }
+  83.87% { background-image: url('/desktop/frame-027.webp'); }
+  87.10% { background-image: url('/desktop/frame-028.webp'); }
+  90.32% { background-image: url('/desktop/frame-029.webp'); }
+  93.55% { background-image: url('/desktop/frame-030.webp'); }
+  96.77% { background-image: url('/desktop/frame-031.webp'); }
+  100.00% { background-image: url('/desktop/frame-032.webp'); }
+}
+
+/* HTML/React container styling */
+.scroll-container-influencia {
+  position: relative;
+  width: 100%;
+  height: 400vh; /* Scroll volume */
+  background-color: #000;
+}
+
+.sticky-viewport-influencia {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.frame-display-influencia {
+  width: 100%;
+  max-width: 512px;
+  aspect-ratio: 512 / 288;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  
+  /* Bind to browser scroll tracking of the viewport */
+  animation: play-influencia-sequence linear both;
+  animation-timeline: scroll(nearest);
+}
+
+/* Graceful degradation for Safari/Firefox lacking scroll-timeline support */
+@supports not (animation-timeline: scroll()) {
+  .frame-display-influencia {
+    /* Fallback background if unsupported */
+    background-image: url('/desktop/frame-001.webp');
+  }
+  .frame-display-influencia::after {
+    content: "Notice: Browser does not support scroll-timeline. Animate with Framer Motion/GSAP boilerplate.";
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(220,38,38,0.2);
+    border: 1px solid rgba(220,38,38,0.3);
+    color: #fca5a5;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-family: monospace;
+    backdrop-filter: blur(8px);
+  }
+}

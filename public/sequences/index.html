@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artisan Labs — Responsive Scrollytelling Demo</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #050505;
+      color: #eaeaea;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .scroll-container {
+      height: 400vh; /* Scroll length */
+      position: relative;
+    }
+    .sticky-viewport {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .scrolly-picture, .scrolly-img {
+      max-width: 100%;
+      max-height: 100vh;
+      object-fit: contain;
+      display: block;
+    }
+    
+    /* Overlay HUD */
+    .overlay-hud {
+      position: fixed;
+      top: 32px;
+      left: 32px;
+      z-index: 10;
+      pointer-events: none;
+      backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 16px 24px;
+      border-radius: 12px;
+    }
+    .overlay-hud h1 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .overlay-hud p {
+      margin: 4px 0 0;
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay-hud">
+    <h1>influencia</h1>
+    <p>Responsive Scrollytelling &bull; <span id="frame-hud">Frame 1 / 32</span></p>
+  </div>
+
+  <div class="scroll-container">
+    <div class="sticky-viewport">
+      <picture class="scrolly-picture">
+        <source id="mobile-source" srcset="mobile/frame-001.webp" media="(max-width: 640px)">
+        <source id="tablet-source" srcset="tablet/frame-001.webp" media="(max-width: 1024px)">
+        <img id="scrolly-img" class="scrolly-img" src="desktop/frame-001.webp" alt="Scrollytelling Frame">
+      </picture>
+    </div>
+  </div>
+
+  <script>
+    const totalFrames = 32;
+    const extension = "webp";
+    const container = document.querySelector('.scroll-container');
+    const img = document.getElementById('scrolly-img');
+    const mobileSource = document.getElementById('mobile-source');
+    const tabletSource = document.getElementById('tablet-source');
+    const frameHud = document.getElementById('frame-hud');
+
+    window.addEventListener('scroll', () => {
+      // Calculate scroll progress percentage (0.0 to 1.0)
+      const maxScroll = container.scrollHeight - window.innerHeight;
+      if (maxScroll <= 0) return;
+      const progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+      
+      // Determine frame number (1-based index)
+      const currentFrame = Math.min(totalFrames, Math.max(1, Math.round(progress * (totalFrames - 1)) + 1));
+      const paddedNum = String(currentFrame).padStart(3, '0');
+
+      // Update frame sources dynamically
+      mobileSource.srcset = `mobile/frame-${paddedNum}.${extension}`;
+      tabletSource.srcset = `tablet/frame-${paddedNum}.${extension}`;
+      img.src = `desktop/frame-${paddedNum}.${extension}`;
+
+      frameHud.textContent = `Frame ${currentFrame} / ${totalFrames} (${Math.round(progress * 100)}%)`;
+    });
+  </script>
+</body>
+</html>

@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { motion, AnimatePresence, type Variants } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Upload,
   Film,
   Play,
   Clock,
@@ -11,26 +10,15 @@ import {
   HardDrive,
   RefreshCw,
   Loader2,
-  Zap,
   Layers,
   X,
   SlidersHorizontal,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Slider } from '@/components/ui/slider'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { useAppStore, createSequenceId } from '@/store/app-store'
 import type { ExportFormat, ExtractionParams, VideoInfo } from '@/types'
 import {
@@ -38,186 +26,15 @@ import {
   estimateFrameCount,
   estimateFileSize,
 } from '@/lib/frame-extractor'
-
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500MB
-
-// ─── Animation Variants ───────────────────────────────────────────────────
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.1,
-    },
-  },
-}
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
-  },
-}
-
-// ─── Helpers ─────────────────────────────────────────────────────────────
-
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`
-}
-
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60)
-  const s = Math.floor(seconds % 60)
-  const ms = Math.round((seconds % 1) * 10)
-  return `${m}:${s.toString().padStart(2, '0')}.${ms}`
-}
-
-function formatElapsed(ms: number): string {
-  const totalSec = Math.floor(ms / 1000)
-  const m = Math.floor(totalSec / 60)
-  const s = totalSec % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
-const FORMAT_OPTIONS: { value: ExportFormat; label: string; hint: string }[] = [
-  { value: 'jpeg', label: 'JPEG', hint: 'Lossy, small files' },
-  { value: 'png', label: 'PNG', hint: 'Lossless, large files' },
-  { value: 'webp', label: 'WebP', hint: 'Modern, great compression' },
-  { value: 'bmp', label: 'BMP', hint: 'Uncompressed' },
-  { value: 'tiff', label: 'TIFF', hint: 'Print quality' },
-  { value: 'avif', label: 'AVIF', hint: 'Next-gen, best ratio' },
-]
-
-const FPS_PRESETS = [
-  { label: 'Smooth', fps: 4, tag: '4 FPS' },
-  { label: 'Balanced', fps: 2.5, tag: '2.5 FPS' },
-  { label: 'Fast', fps: 2, tag: '2 FPS' },
-] as const
-
-// ─── Sub-components ───────────────────────────────────────────────────────
-
-function VideoUploadZone({ onFileSelected }: { onFileSelected: (file: File) => void }) {
-  const [isDragging, setIsDragging] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setIsDragging(false)
-      const file = e.dataTransfer.files?.[0]
-      if (!file) return
-      
-      if (!file.type.startsWith('video/')) {
-        toast.error('Please drop a valid video file')
-        return
-      }
-      
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error(`File too large. Maximum size is ${formatBytes(MAX_FILE_SIZE)}`)
-        return
-      }
-      
-      onFileSelected(file)
-    },
-    [onFileSelected]
-  )
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }, [])
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }, [])
-
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (file) onFileSelected(file)
-    },
-    [onFileSelected]
-  )
-
-  return (
-    <motion.div
-      variants={itemVariants}
-      className="flex items-center justify-center min-h-[60vh]"
-    >
-      <div
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onClick={() => inputRef.current?.click()}
-        className={`
-          relative w-full max-w-2xl cursor-pointer rounded-2xl border-2 border-dashed
-          p-12 sm:p-16 text-center transition-all duration-300
-          ${
-            isDragging
-              ? 'border-orange-400/60 bg-orange-500/[0.06] scale-[1.01]'
-              : 'border-white/10 bg-white/[0.02] hover:border-orange-400/40 hover:bg-white/[0.04]'
-          }
-        `}
-      >
-        {/* Glow effect */}
-        <div
-          className={`absolute inset-0 rounded-2xl transition-opacity duration-500 ${
-            isDragging ? 'opacity-100' : 'opacity-0'
-          }`}
-          style={{
-            background:
-              'radial-gradient(ellipse at center, rgba(249,115,22,0.08) 0%, transparent 70%)',
-          }}
-        />
-
-        <div className="relative space-y-5">
-          <div
-            className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl transition-colors duration-300 ${
-              isDragging
-                ? 'bg-orange-500/20 text-orange-400'
-                : 'bg-white/[0.06] text-white/30'
-            }`}
-          >
-            <Upload className="h-7 w-7" />
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-[#f0f0f0]">
-              {isDragging ? 'Drop your video here' : 'Upload a Video'}
-            </h2>
-            <p className="text-sm text-white/35">
-              Drag & drop or click to browse. Supports MP4, WebM, MOV, and more.
-            </p>
-          </div>
-
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-xs text-white/40">
-            <Film className="h-3 w-3" />
-            Video files only
-          </div>
-        </div>
-
-        <input
-          ref={inputRef}
-          type="file"
-          accept="video/*"
-          className="hidden"
-          onChange={handleInputChange}
-        />
-      </div>
-    </motion.div>
-  )
-}
+import {
+  formatBytes,
+  formatDuration,
+  formatElapsed,
+  containerVariants,
+  itemVariants,
+} from '@/lib/shared-utils'
+import { VideoUploadZone, MAX_FILE_SIZE } from '@/components/sequencer/video-upload-zone'
+import { ExtractionSettings } from '@/components/sequencer/extraction-settings'
 
 // ─── Main Sequencer ───────────────────────────────────────────────────────
 
@@ -357,10 +174,15 @@ export default function Sequencer() {
     }
   }, [samplingRate, quality, resizeFactor, upscaling, enhance, format])
 
-  // ── Handle FPS preset click ─────────────────────────────────────────────
+  // ── Handle param changes from ExtractionSettings ─────────────────────────
 
-  const handlePresetClick = useCallback((fps: number) => {
-    setSamplingRate(fps)
+  const handleParamChange = useCallback((updates: Partial<ExtractionParams>) => {
+    if (updates.samplingRate !== undefined) setSamplingRate(updates.samplingRate)
+    if (updates.quality !== undefined) setQuality(updates.quality)
+    if (updates.resizeFactor !== undefined) setResizeFactor(updates.resizeFactor)
+    if (updates.upscaling !== undefined) setUpscaling(updates.upscaling)
+    if (updates.enhance !== undefined) setEnhance(updates.enhance)
+    if (updates.format !== undefined) setFormat(updates.format)
   }, [])
 
   // ── Start extraction ────────────────────────────────────────────────────
@@ -507,8 +329,6 @@ export default function Sequencer() {
 
   const progressPercent =
     progressTotal > 0 ? Math.round((progressCount / progressTotal) * 100) : 0
-
-  const currentFormatInfo = FORMAT_OPTIONS.find((f) => f.value === format)
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-[#f0f0f0] pt-14">
@@ -681,179 +501,13 @@ export default function Sequencer() {
 
                 {/* ── Tab: Extraction Settings ── */}
                 <TabsContent value="settings" className="mt-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-5 sm:p-6 space-y-6"
-                  >
-                    <h2 className="text-xs font-medium uppercase tracking-widest text-white/30 flex items-center gap-2">
-                      <Zap className="h-3 w-3 text-orange-400" />
-                      Extraction Settings
-                    </h2>
-
-                    {/* Row 1: FPS Presets */}
-                    <div className="space-y-2.5">
-                      <Label className="text-xs uppercase tracking-wider text-white/50">
-                        Quick Presets
-                      </Label>
-                      <div className="flex flex-wrap gap-2">
-                        {FPS_PRESETS.map((preset) => (
-                          <button
-                            key={preset.fps}
-                            onClick={() => handlePresetClick(preset.fps)}
-                            disabled={isExtracting}
-                            className={`
-                              relative rounded-lg border px-4 py-2 text-xs font-medium transition-all duration-200
-                              ${
-                                Math.abs(samplingRate - preset.fps) < 0.01
-                                  ? 'border-orange-500/50 bg-orange-500/15 text-orange-300 shadow-[0_0_12px_rgba(249,115,22,0.15)]'
-                                  : 'border-white/[0.08] bg-white/[0.03] text-white/50 hover:border-white/20 hover:text-white/70 hover:bg-white/[0.06]'
-                              }
-                              disabled:opacity-50 disabled:cursor-not-allowed
-                            `}
-                          >
-                            {preset.label}
-                            <span className="ml-1.5 opacity-60">({preset.tag})</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Row 2: Sampling Rate Slider */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs uppercase tracking-wider text-white/50">
-                          Sampling Rate (FPS)
-                        </Label>
-                        <span className="text-sm font-mono font-medium text-orange-400">
-                          {samplingRate.toFixed(1)}
-                        </span>
-                      </div>
-                      <Slider
-                        value={[samplingRate]}
-                        min={0.1}
-                        max={10}
-                        step={0.1}
-                        onValueChange={(val) => setSamplingRate(val[0])}
-                        disabled={isExtracting}
-                        className="py-1"
-                      />
-                      <div className="flex justify-between text-[10px] text-white/20">
-                        <span>0.1 FPS</span>
-                        <span>10 FPS</span>
-                      </div>
-                    </div>
-
-                    {/* Row 3: Format Selection */}
-                    <div className="space-y-2.5">
-                      <Label className="text-xs uppercase tracking-wider text-white/50">
-                        Export Format
-                      </Label>
-                      <div className="flex items-center gap-3">
-                        <Select
-                          value={format}
-                          onValueChange={(val) => setFormat(val as ExportFormat)}
-                          disabled={isExtracting}
-                        >
-                          <SelectTrigger className="w-[180px] border-white/[0.1] bg-white/[0.04] text-white/80 focus:ring-orange-500/30 focus:border-orange-500/40">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="border-white/[0.1] bg-[#1a1a1a]">
-                            {FORMAT_OPTIONS.map((opt) => (
-                              <SelectItem
-                                key={opt.value}
-                                value={opt.value}
-                                className="text-white/70 focus:text-white focus:bg-white/[0.06]"
-                              >
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {currentFormatInfo && (
-                          <Badge
-                            variant="outline"
-                            className="border-white/[0.08] bg-white/[0.03] text-white/40"
-                          >
-                            {currentFormatInfo.hint}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Row 4: Quality Slider */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs uppercase tracking-wider text-white/50">
-                          Quality
-                        </Label>
-                        <span className="text-sm font-mono font-medium text-orange-400">
-                          {Math.round(quality * 100)}%
-                        </span>
-                      </div>
-                      <Slider
-                        value={[quality]}
-                        min={0.1}
-                        max={1.0}
-                        step={0.05}
-                        onValueChange={(val) => setQuality(val[0])}
-                        disabled={isExtracting}
-                        className="py-1"
-                      />
-                      <div className="flex justify-between text-[10px] text-white/20">
-                        <span>10%</span>
-                        <span>100%</span>
-                      </div>
-                    </div>
-
-                    {/* Row 5: Resize Factor Slider */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs uppercase tracking-wider text-white/50">
-                          Resize Factor
-                        </Label>
-                        <span className="text-sm font-mono font-medium text-orange-400">
-                          {Math.round(resizeFactor * 100)}%
-                        </span>
-                      </div>
-                      <Slider
-                        value={[resizeFactor]}
-                        min={0.1}
-                        max={2.0}
-                        step={0.1}
-                        onValueChange={(val) => setResizeFactor(val[0])}
-                        disabled={isExtracting}
-                        className="py-1"
-                      />
-                      <div className="flex justify-between text-[10px] text-white/20">
-                        <span>10%</span>
-                        <span>200%</span>
-                      </div>
-                      <p className="text-[11px] text-white/25">
-                        Output: {Math.max(1, Math.round(currentVideo.width * resizeFactor * upscaling))}&times;
-                        {Math.max(1, Math.round(currentVideo.height * resizeFactor * upscaling))} px
-                      </p>
-                    </div>
-
-                    {/* Row 6: Enhancement Toggle */}
-                    <div className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] px-4 py-3">
-                      <div className="space-y-0.5">
-                        <Label className="text-xs font-medium text-white/60 cursor-pointer">
-                          Enhance Frames
-                        </Label>
-                        <p className="text-[11px] text-white/25">
-                          Contrast +15% &middot; Saturation +15% &middot; Brightness +5%
-                        </p>
-                      </div>
-                      <Switch
-                        checked={enhance}
-                        onCheckedChange={setEnhance}
-                        disabled={isExtracting}
-                        className="data-[state=checked]:bg-orange-500"
-                      />
-                    </div>
-                  </motion.div>
+                  <ExtractionSettings
+                    params={{ samplingRate, quality, resizeFactor, upscaling, enhance, format }}
+                    onParamChange={handleParamChange}
+                    isExtracting={isExtracting}
+                    videoWidth={currentVideo.width}
+                    videoHeight={currentVideo.height}
+                  />
                 </TabsContent>
 
               </Tabs>

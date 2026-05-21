@@ -20,7 +20,13 @@ export default function Home() {
   const activeScreen = useAppStore((s) => s.activeScreen)
   const isBooting = useAppStore((s) => s.isBooting)
   const setActiveScreen = useAppStore((s) => s.setActiveScreen)
+  const hydrateSequences = useAppStore((s) => s.hydrateSequences)
   const ActiveScreenComponent = screens[activeScreen]
+
+  // Hydrate sequences on startup
+  useEffect(() => {
+    hydrateSequences()
+  }, [hydrateSequences])
 
   // Keyboard shortcuts
   useEffect(() => {

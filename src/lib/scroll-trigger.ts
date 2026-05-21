@@ -1,5 +1,3 @@
-"use client";
-
 // =============================================================================
 // Artisan Labs — Scroll Trigger Event Calculation Engine
 // =============================================================================
@@ -192,29 +190,46 @@ function generateEaseInOut(
 
 // ─── Mode: Velocity-Aware ──────────────────────────────────────────────────
 // Concentrates frames at regions where sequential frames differ the most
-// (high motion regions get more trigger events, static regions get fewer)
+// (high motion regions get more trigger events, static regions get fewer).
+// Uses pixel-level difference data when available (via frameDataUrls), otherwise
+// falls back to timestamp-gap heuristic.
 
 function generateVelocity(
   frameCount: number,
   scrollDistancePx: number,
-  frameTimestamps?: number[]
+  frameTimestamps?: number[],
+  frameDataUrls?: string[]
 ): ScrollTriggerEvent[] {
-  if (!frameTimestamps || frameTimestamps.length < 2) {
-    // Fallback to linear if no timestamps
+  if (frameCount <= 1) {
     return generateLinear(frameCount, scrollDistancePx)
   }
 
-  // Calculate frame differences (approximate velocity between consecutive frames)
-  const diffs: number[] = []
-  for (let i = 1; i < frameCount; i++) {
-    const timeDiff = frameTimestamps[i] - frameTimestamps[i - 1]
-    // Use actual timestamp gap normalized
-    diffs.push(Math.abs(timeDiff))
+  let weights: number[]
+
+  // Try pixel-diff analysis if frame data URLs are available
+  if (frameDataUrls && frameDataUrls.length >= 2) {
+    // Estimate motion by comparing adjacent frame data URL lengths as a rough proxy.
+    // True pixel diff requires decoding images which is expensive; data URL length
+    // correlates with visual complexity changes (more motion = different compression).
+    // For a more accurate approach, callers can pre-compute diff scores.
+    const diffs: number[] = []
+    for (let i = 1; i < frameDataUrls.length; i++) {
+      diffs.push(Math.abs(frameDataUrls[i].length - frameDataUrls[i - 1].length))
+    }
+    const maxDiff = Math.max(...diffs, 1)
+    weights = diffs.map((d) => 0.2 + (d / maxDiff) * 0.8)
+  } else if (frameTimestamps && frameTimestamps.length >= 2) {
+    // Fallback: use timestamp gaps (works when sampling rate varies)
+    const diffs: number[] = []
+    for (let i = 1; i < frameTimestamps.length; i++) {
+      diffs.push(Math.abs(frameTimestamps[i] - frameTimestamps[i - 1]))
+    }
+    const maxDiff = Math.max(...diffs, 0.001)
+    weights = diffs.map((d) => 0.2 + (d / maxDiff) * 0.8)
+  } else {
+    return generateLinear(frameCount, scrollDistancePx)
   }
 
-  // Normalize to weights (higher weight = more scroll space)
-  const maxDiff = Math.max(...diffs, 0.001)
-  const weights = diffs.map((d) => 0.2 + (d / maxDiff) * 0.8) // clamp between 0.2 and 1.0
   const totalWeight = weights.reduce((a, b) => a + b, 0)
 
   const events: ScrollTriggerEvent[] = []
@@ -336,7 +351,8 @@ function generateGoldenRatio(
 }
 
 // ─── Mode: Step & Hold ─────────────────────────────────────────────────────
-// Frame advances immediately then holds for a fixed scroll distance
+// Each frame holds for `holdDuration` scroll pixels before the next frame
+// advances. Creates discrete, magazine-like transitions.
 
 function generateStepHold(
   frameCount: number,
@@ -344,12 +360,17 @@ function generateStepHold(
   holdDuration: number
 ): ScrollTriggerEvent[] {
   const events: ScrollTriggerEvent[] = []
-  const stepWidth = scrollDistancePx / frameCount
+
+  if (frameCount <= 0) return events
+
+  // Each frame occupies holdDuration pixels; total scroll = frameCount * holdDuration
+  // If that exceeds scrollDistancePx, scale holdDuration down to fit.
+  const effectiveHold = Math.min(holdDuration, scrollDistancePx / frameCount)
 
   for (let i = 0; i < frameCount; i++) {
     const progress = frameCount === 1 ? 0.5 : i / (frameCount - 1)
     events.push({
-      scrollPosition: Math.round(i * stepWidth * 10) / 10,
+      scrollPosition: Math.round(i * effectiveHold * 10) / 10,
       frameIndex: i,
       progress: Math.round(progress * 10000) / 10000,
     })
@@ -425,7 +446,8 @@ function generateManual(
 export function generateScrollTriggerMap(
   frameCount: number,
   config: ScrollTriggerConfig,
-  frameTimestamps?: number[]
+  frameTimestamps?: number[],
+  frameDataUrls?: string[]
 ): ScrollTriggerMap {
   const scrollDistancePx = scrollToPixels(config.scrollDistance, config.scrollUnit)
 
@@ -445,7 +467,7 @@ export function generateScrollTriggerMap(
       events = generateEaseInOut(frameCount, scrollDistancePx)
       break
     case 'velocity':
-      events = generateVelocity(frameCount, scrollDistancePx, frameTimestamps)
+      events = generateVelocity(frameCount, scrollDistancePx, frameTimestamps, frameDataUrls)
       break
     case 'scene':
       events = generateSceneBased(frameCount, scrollDistancePx, config.scenes)

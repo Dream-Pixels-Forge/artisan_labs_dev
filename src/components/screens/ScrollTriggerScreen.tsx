@@ -5,7 +5,8 @@ import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { MousePointerClick, Layers, ArrowRight, Settings, LayoutGrid, X, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAppStore } from '@/store/app-store'
-import type { ScrollTriggerMap } from '@/types'
+import type { ScrollTriggerMap, ScrollTriggerConfig } from '@/types'
+import { DEFAULT_SCROLL_CONFIG } from '@/types'
 import ScrollTriggerPanel from '@/components/scroll-trigger/ScrollTriggerPanel'
 import ScrollPreview from '@/components/scroll-trigger/ScrollPreview'
 import { estimateFrameCount } from '@/lib/frame-extractor'
@@ -50,6 +51,9 @@ export default function ScrollTriggerScreen() {
   const [scrollMap, setScrollMap] = useState<ScrollTriggerMap | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [panelMode, setPanelMode] = useState<'modes' | 'settings'>('modes')
+  const [config, setConfig] = useState<ScrollTriggerConfig>({
+    ...DEFAULT_SCROLL_CONFIG,
+  })
 
   // Get frames from current sequence for preview
   const currentFrames = currentSequence?.frames ?? []
@@ -228,6 +232,11 @@ export default function ScrollTriggerScreen() {
                 map={scrollMap}
                 frames={currentFrames}
                 onClose={() => { }}
+                config={config}
+                frameCount={frameCount}
+                frameTimestamps={currentVideo?.frameTimestamps}
+                onConfigChange={(updates) => setConfig((prev) => ({ ...prev, ...updates }))}
+                setConfig={setConfig}
               />
             </motion.div>
           </>
@@ -257,37 +266,71 @@ export default function ScrollTriggerScreen() {
       {/* ════════════════════ Right Side Panel ════════════════════ */}
       <AnimatePresence>
         {isPanelOpen && (
-          <motion.div
-            className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-[#0a0a0a] border-l border-white/[0.08] shadow-lg p-6 overflow-y-auto"
-            initial="closed"
-            animate="open"
-            exit="closed"
-            variants={panelVariants}
-          >
-            <div className="flex items-center justify-between pb-6 border-b border-white/[0.06]">
-              <h2 className="text-lg font-bold text-[#f0f0f0] capitalize">
-                {panelMode}
-              </h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleClosePanel}
-                className="h-8 w-8 text-white/50 hover:text-white hover:bg-white/[0.08]"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="pt-6">
-              <ScrollTriggerPanel
-                frameCount={frameCount}
-                frameTimestamps={currentVideo?.frameTimestamps}
-                onConfigChange={handleConfigChange}
-                onPreviewRequest={handleScrollPreviewRequest}
-                disabled={false} // Adjust disabled logic if needed
+          <>
+            {/* Backdrop */}
+            <motion.div
+              className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleClosePanel}
+            />
 
-              />
-            </div>
-          </motion.div>
+            {/* Panel */}
+            <motion.div
+              className="fixed inset-y-0 right-0 z-50 w-full max-w-lg bg-[#0a0a0a]/95 backdrop-blur-xl border-l border-white/[0.08] shadow-2xl overflow-y-auto"
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={panelVariants}
+            >
+              {/* Header */}
+              <div className="sticky top-0 z-10 bg-[#0a0a0a]/90 backdrop-blur-xl border-b border-white/[0.06] px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500/10">
+                      {panelMode === 'modes' ? (
+                        <LayoutGrid className="h-4 w-4 text-orange-400" />
+                      ) : (
+                        <Settings className="h-4 w-4 text-orange-400" />
+                      )}
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-bold text-[#f0f0f0] capitalize">
+                        {panelMode === 'modes' ? 'Scroll Modes' : 'Settings'}
+                      </h2>
+                      <p className="text-[10px] text-white/30">
+                        {panelMode === 'modes'
+                          ? 'Choose how frames map to scroll position'
+                          : 'Fine-tune scroll distance and behavior'}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleClosePanel}
+                    className="h-8 w-8 text-white/50 hover:text-white hover:bg-white/[0.08]"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="px-6 py-6">
+                <ScrollTriggerPanel
+                  frameCount={frameCount}
+                  frameTimestamps={currentVideo?.frameTimestamps}
+                  onConfigChange={handleConfigChange}
+                  onPreviewRequest={handleScrollPreviewRequest}
+                  disabled={false}
+                  config={config}
+                  setConfig={setConfig}
+                />
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>

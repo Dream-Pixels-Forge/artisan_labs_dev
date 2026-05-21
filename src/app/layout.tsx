@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   description:
     "Transform videos into optimized image sequences for stunning scrollytelling websites.",
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/logo.png",
   },
 };
 

@@ -1,14 +1,12 @@
 'use client'
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
-import { motion, AnimatePresence, type Variants } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Archive as ArchiveIcon,
   Trash2,
   Download,
   Eye,
-  ChevronLeft,
-  ChevronRight,
   Film,
   ImageIcon,
   Clock,
@@ -17,18 +15,21 @@ import {
   Pencil,
   Check,
   X,
-  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import JSZip from 'jszip'
 import { useAppStore } from '@/store/app-store'
-import type { Sequence, ExportFormat, FrameData } from '@/types'
+import type { Sequence } from '@/types'
+import {
+  formatBytes,
+  containerVariants,
+  itemVariants,
+  fadeInVariants,
+} from '@/lib/shared-utils'
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { Progress } from '@/components/ui/progress'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,110 +41,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
-
-// ─── Animation Variants ───────────────────────────────────────────────
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.1,
-    },
-  },
-}
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
-  },
-}
-
-const fadeInVariants: Variants = {
-  hidden: { opacity: 0, filter: 'blur(8px)' },
-  visible: {
-    opacity: 1,
-    filter: 'blur(0px)',
-    transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
-  },
-}
-
-// ─── Helper Functions ─────────────────────────────────────────────────
-
-function dataUrlToBlob(dataUrl: string): Blob {
-  const [header, base64] = dataUrl.split(',')
-  const mimeMatch = header.match(/:(.*?);/)
-  const mime = mimeMatch ? mimeMatch[1] : 'image/png'
-  const binary = atob(base64)
-  const array = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i++) {
-    array[i] = binary.charCodeAt(i)
-  }
-  return new Blob([array], { type: mime })
-}
-
-function timeAgo(dateString: string): string {
-  const now = Date.now()
-  const then = new Date(dateString).getTime()
-  const diff = now - then
-
-  const seconds = Math.floor(diff / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
-
-  if (seconds < 10) return 'Just now'
-  if (seconds < 60) return `${seconds} seconds ago`
-  if (minutes === 1) return '1 minute ago'
-  if (minutes < 60) return `${minutes} minutes ago`
-  if (hours === 1) return '1 hour ago'
-  if (hours < 24) return `${hours} hours ago`
-  if (days === 1) return '1 day ago'
-  if (days < 30) return `${days} days ago`
-  if (days < 365) return `${Math.floor(days / 30)} months ago`
-  return `${Math.floor(days / 365)} years ago`
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`
-}
-
-function getFormatBadge(format: ExportFormat): { label: string; className: string } {
-  switch (format) {
-    case 'webp':
-      return { label: 'WebP', className: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' }
-    case 'png':
-      return { label: 'PNG', className: 'bg-sky-500/15 text-sky-400 border-sky-500/20' }
-    case 'jpeg':
-      return { label: 'JPEG', className: 'bg-amber-500/15 text-amber-400 border-amber-500/20' }
-    case 'bmp':
-      return { label: 'BMP', className: 'bg-violet-500/15 text-violet-400 border-violet-500/20' }
-    case 'tiff':
-      return { label: 'TIFF', className: 'bg-rose-500/15 text-rose-400 border-rose-500/20' }
-    case 'avif':
-      return { label: 'AVIF', className: 'bg-orange-500/15 text-orange-400 border-orange-500/20' }
-  }
-}
-
-function getFrameExtension(format: ExportFormat): string {
-  if (format === 'jpeg') return 'jpg'
-  return format
-}
+import { getFormatBadge, timeAgo } from '@/components/archive/helpers'
+import { FramePreviewDialog } from '@/components/archive/frame-preview-dialog'
+import { ExportSequenceDialog } from '@/components/archive/export-dialog'
 
 // ─── Sub-components ───────────────────────────────────────────────────
 
@@ -201,7 +101,6 @@ function SequenceCard({
 }) {
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(sequence.name)
-  const [isDownloading, setIsDownloading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -234,13 +133,8 @@ function SequenceCard({
     if (e.key === 'Escape') handleCancelEdit()
   }
 
-  const handleDownload = async () => {
-    setIsDownloading(true)
-    try {
-      await onDownload(sequence)
-    } finally {
-      setIsDownloading(false)
-    }
+  const handleDownload = () => {
+    onDownload(sequence)
   }
 
   const formatBadge = getFormatBadge(sequence.format)
@@ -362,15 +256,11 @@ function SequenceCard({
             size="sm"
             variant="ghost"
             onClick={handleDownload}
-            disabled={isDownloading || sequence.frames.length === 0}
+            disabled={sequence.frames.length === 0}
             className="flex-1 gap-1.5 text-xs text-white/60 hover:text-emerald-400 hover:bg-emerald-500/10"
           >
-            {isDownloading ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Download className="h-3.5 w-3.5" />
-            )}
-            ZIP
+            <Download className="h-3.5 w-3.5" />
+            Export
           </Button>
 
           <DeleteSequenceButton onDelete={() => onDelete(sequence.id)} />
@@ -455,154 +345,6 @@ function ClearAllButton({ count, onClear }: { count: number; onClear: () => void
   )
 }
 
-// ─── Frame Preview Dialog ─────────────────────────────────────────────
-
-function FramePreviewDialog({
-  sequence,
-  open,
-  onOpenChange,
-}: {
-  sequence: Sequence | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}) {
-  const [selectedIndex, setSelectedIndex] = useState(0)
-  const filmstripRef = useRef<HTMLDivElement>(null)
-  const MAX_VISIBLE = 100
-  const visibleFrames = sequence ? sequence.frames.slice(0, MAX_VISIBLE) : []
-
-  // Keyboard navigation
-  useEffect(() => {
-    if (!open || !sequence) return
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') {
-        e.preventDefault()
-        setSelectedIndex((prev) => Math.min(prev + 1, visibleFrames.length - 1))
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault()
-        setSelectedIndex((prev) => Math.max(prev - 1, 0))
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [open, sequence, visibleFrames.length])
-
-  // Scroll filmstrip to active frame
-  useEffect(() => {
-    if (!filmstripRef.current || !sequence) return
-    const activeThumb = filmstripRef.current.children[selectedIndex] as HTMLElement | undefined
-    if (activeThumb) {
-      activeThumb.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
-      })
-    }
-  }, [selectedIndex, sequence])
-
-  if (!sequence) return null
-
-  const currentFrame = visibleFrames[selectedIndex]
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0a0a0a] border-white/[0.08] text-[#f0f0f0] max-w-5xl w-[calc(100%-2rem)] h-[85vh] flex flex-col p-0 gap-0 overflow-hidden">
-        {/* ── Header ── */}
-        <DialogHeader className="px-6 pt-5 pb-3 shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <DialogTitle className="text-lg font-semibold tracking-tight">
-                {sequence.name}
-              </DialogTitle>
-              <DialogDescription className="text-white/30">
-                {sequence.frameCount} frames &middot; {sequence.width}×{sequence.height} &middot; {getFormatBadge(sequence.format).label}
-              </DialogDescription>
-            </div>
-            {sequence.frames.length > MAX_VISIBLE && (
-              <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-400 border-amber-500/20">
-                Showing first {MAX_VISIBLE} of {sequence.frames.length} frames
-              </Badge>
-            )}
-          </div>
-        </DialogHeader>
-
-        {/* ── Frame Counter ── */}
-        <div className="px-6 pb-2 shrink-0">
-          <div className="flex items-center justify-between text-xs font-mono text-white/40">
-            <span>Frame {selectedIndex + 1} of {visibleFrames.length}</span>
-            <span className="text-white/20">Use arrow keys to navigate</span>
-          </div>
-        </div>
-
-        {/* ── Main Frame Display ── */}
-        <div className="flex-1 flex items-center justify-center px-6 min-h-0">
-          <div className="relative w-full h-full flex items-center justify-center bg-white/[0.02] rounded-lg overflow-hidden">
-            {currentFrame ? (
-              <img
-                src={currentFrame.dataUrl}
-                alt={`Frame ${selectedIndex + 1}`}
-                className="max-w-full max-h-full object-contain"
-              />
-            ) : (
-              <div className="text-white/20 text-sm">No frame data</div>
-            )}
-
-            {/* Nav arrows */}
-            {visibleFrames.length > 1 && (
-              <>
-                <button
-                  onClick={() => setSelectedIndex((prev) => Math.max(prev - 1, 0))}
-                  disabled={selectedIndex === 0}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 border border-white/10 text-white/60 hover:text-white hover:bg-black/70 disabled:opacity-20 disabled:cursor-not-allowed transition-colors backdrop-blur-sm"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={() => setSelectedIndex((prev) => Math.min(prev + 1, visibleFrames.length - 1))}
-                  disabled={selectedIndex === visibleFrames.length - 1}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 border border-white/10 text-white/60 hover:text-white hover:bg-black/70 disabled:opacity-20 disabled:cursor-not-allowed transition-colors backdrop-blur-sm"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* ── Filmstrip ── */}
-        <div className="shrink-0 border-t border-white/[0.06] pt-3 pb-4 px-4">
-          <div
-            ref={filmstripRef}
-            className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin"
-            style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.15) transparent' }}
-          >
-            {visibleFrames.map((frame, idx) => (
-              <button
-                key={frame.frameNumber}
-                onClick={() => setSelectedIndex(idx)}
-                className={`shrink-0 rounded-md overflow-hidden border-2 transition-all ${
-                  idx === selectedIndex
-                    ? 'border-orange-400/80 ring-1 ring-orange-400/30 scale-105'
-                    : 'border-white/[0.08] hover:border-white/30 opacity-60 hover:opacity-90'
-                }`}
-              >
-                <img
-                  src={frame.dataUrl}
-                  alt={`Frame ${frame.frameNumber}`}
-                  className="h-14 w-auto object-cover"
-                  loading="lazy"
-                />
-              </button>
-            ))}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
 // ─── Main Archive Screen ──────────────────────────────────────────────
 
 export default function Archive() {
@@ -617,16 +359,28 @@ export default function Archive() {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewSequence, setPreviewSequence] = useState<Sequence | null>(null)
 
+  // Exporter dialog state
+  const [exportOpen, setExportOpen] = useState(false)
+  const [exportSequence, setExportSequence] = useState<Sequence | null>(null)
+
   // When coming from scroll trigger, show the current sequence
   const displaySequences = useMemo(() => {
+    let result = sequences
+
     if (currentSequence) {
-      // Check if current sequence is already in the list
       const exists = sequences.find(s => s.id === currentSequence.id)
       if (!exists) {
-        return [currentSequence, ...sequences]
+        result = [currentSequence, ...sequences]
       }
     }
-    return sequences
+
+    // Deduplicate by ID to prevent duplicate key errors
+    const seen = new Set<string>()
+    return result.filter((s) => {
+      if (seen.has(s.id)) return false
+      seen.add(s.id)
+      return true
+    })
   }, [sequences, currentSequence])
 
   const handlePreview = useCallback((seq: Sequence) => {
@@ -647,70 +401,9 @@ export default function Archive() {
     toast.success('All sequences cleared')
   }, [clearSequences])
 
-  const handleDownload = useCallback(async (sequence: Sequence) => {
-    if (sequence.frames.length === 0) return
-
-    const ext = getFrameExtension(sequence.format)
-    const toastId = toast.loading(`Preparing "${sequence.name}" for download...`)
-
-    try {
-      const zip = new JSZip()
-      const folder = zip.folder(sequence.name.replace(/[^a-zA-Z0-9_-]/g, '_'))
-
-      const frames = sequence.frames
-      const total = frames.length
-
-      for (let i = 0; i < total; i++) {
-        const frame = frames[i]
-        const blob = dataUrlToBlob(frame.dataUrl)
-        const paddedNum = String(frame.frameNumber).padStart(3, '0')
-        const filename = `frame-${paddedNum}.${ext}`
-
-        if (folder) {
-          folder.file(filename, blob)
-        } else {
-          zip.file(filename, blob)
-        }
-
-        // Update progress every 10 frames
-        if (i % 10 === 0 || i === total - 1) {
-          const pct = Math.round(((i + 1) / total) * 100)
-          toast.loading(`Compressing "${sequence.name}"... ${pct}%`, {
-            id: toastId,
-          })
-          // Yield to UI thread
-          await new Promise((r) => setTimeout(r, 0))
-        }
-      }
-
-      toast.loading(`Generating ZIP for "${sequence.name}"...`, { id: toastId })
-
-      const content = await zip.generateAsync(
-        { type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } },
-        (metadata) => {
-          toast.loading(`Compressing "${sequence.name}"... ${Math.round(metadata.percent)}%`, {
-            id: toastId,
-          })
-        }
-      )
-
-      // Trigger download
-      const url = URL.createObjectURL(content)
-      const anchor = document.createElement('a')
-      anchor.href = url
-      anchor.download = `${sequence.name.replace(/[^a-zA-Z0-9_-]/g, '_')}.zip`
-      document.body.appendChild(anchor)
-      anchor.click()
-      document.body.removeChild(anchor)
-
-      // Cleanup blob URL after a short delay
-      setTimeout(() => URL.revokeObjectURL(url), 5000)
-
-      toast.success(`"${sequence.name}" downloaded successfully!`, { id: toastId })
-    } catch (error) {
-      console.error('Download failed:', error)
-      toast.error(`Failed to download "${sequence.name}"`, { id: toastId })
-    }
+  const handleDownload = useCallback((sequence: Sequence) => {
+    setExportSequence(sequence)
+    setExportOpen(true)
   }, [])
 
   return (
@@ -785,6 +478,14 @@ export default function Archive() {
         sequence={previewSequence}
         open={previewOpen}
         onOpenChange={setPreviewOpen}
+      />
+
+      {/* ── Scrollytelling Export Dialog ── */}
+      <ExportSequenceDialog
+        key={exportSequence?.id ?? 'export-none'}
+        sequence={exportSequence}
+        open={exportOpen}
+        onOpenChange={setExportOpen}
       />
     </div>
   )

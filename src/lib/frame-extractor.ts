@@ -85,17 +85,37 @@ function seekTo(video: HTMLVideoElement, time: number): Promise<void> {
     }
 
     let settled = false;
+    let rvfcId: number | null = null;
 
     const finish = (fn: () => void) => {
       if (settled) return;
       settled = true;
       clearTimeout(timeout);
+      
+      // Clean up requestVideoFrameCallback if registered
+      if (rvfcId !== null && 'cancelVideoFrameCallback' in video) {
+        try {
+          (video as any).cancelVideoFrameCallback(rvfcId);
+        } catch (e) {
+          // Ignore
+        }
+      }
+      
       video.removeEventListener('seeked', onSeeked);
       video.removeEventListener('error', onError);
       fn();
     };
 
-    const onSeeked = () => finish(resolve);
+    const onSeeked = () => {
+      if ('requestVideoFrameCallback' in video) {
+        rvfcId = (video as any).requestVideoFrameCallback(() => {
+          finish(resolve);
+        });
+      } else {
+        finish(resolve);
+      }
+    };
+
     const onError = () => finish(() => reject(new Error(`Failed to seek to ${time.toFixed(3)}s`)));
 
     const timeout = setTimeout(() => {
