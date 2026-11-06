@@ -78,7 +78,7 @@ https://youtu.be/i1N_mJvYLf8
 | **State Management** | Zustand (with localStorage persistence) |
 | **Database** | Prisma |
 | **Animation** | Framer Motion, Lenis (smooth scroll) |
-| **Package Manager** | Bun |
+| **Package Manager** | pnpm |
 
 ---
 
@@ -97,13 +97,13 @@ git clone https://github.com/Dream-Pixels-Forge/artisan_labs_dev.git
 cd artisan_labs_dev
 
 # Install dependencies
-bun install
+pnpm install
 
 # Set up the database
-bun run db:push
+pnpm run db:push
 
 # Start the development server
-bun run dev
+pnpm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -112,13 +112,13 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 | Script | Description |
 |--------|-------------|
-| `bun run dev` | Start development server on port 3000 |
-| `bun run build` | Build the production application |
-| `bun run start` | Start production server |
-| `bun run lint` | Run ESLint |
-| `bun run db:push` | Push Prisma schema to database |
-| `bun run db:generate` | Generate Prisma client |
-| `bun run db:migrate` | Run database migrations |
+| `pnpm dev` | Start development server on port 3000 |
+| `pnpm build` | Build the production application |
+| `pnpm start` | Start production server |
+| `pnpm lint` | Run ESLint |
+| `pnpm run db:push` | Push Prisma schema to database |
+| `pnpm run db:generate` | Generate Prisma client |
+| `pnpm run db:migrate` | Run database migrations |
 
 ---
 

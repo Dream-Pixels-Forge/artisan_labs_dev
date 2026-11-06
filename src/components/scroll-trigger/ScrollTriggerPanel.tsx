@@ -37,7 +37,6 @@ import { TriggerStats } from './trigger-stats'
 export interface ScrollTriggerPanelProps {
   frameCount: number
   frameTimestamps?: number[]
-  onConfigChange: (config: ScrollTriggerConfig) => void
   onPreviewRequest: (map: ScrollTriggerMap) => void
   disabled?: boolean
   config: ScrollTriggerConfig
@@ -58,7 +57,6 @@ const OVERSHOOT_OPTIONS: { value: OvershootBehavior; label: string; desc: string
 export default function ScrollTriggerPanel({
   frameCount,
   frameTimestamps,
-  onConfigChange,
   onPreviewRequest,
   disabled = false,
   config,
