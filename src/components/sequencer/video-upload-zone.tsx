@@ -99,7 +99,7 @@ export function VideoUploadZone({ onFileSelected }: { onFileSelected: (file: Fil
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-[#f0f0f0]">
+            <h2 className="text-lg font-semibold text-foreground">
               {isDragging ? 'Drop your video here' : 'Upload a Video'}
             </h2>
             <p className="text-sm text-white/35">

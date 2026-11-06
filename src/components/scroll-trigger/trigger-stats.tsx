@@ -16,9 +16,9 @@ function StatCard({
     <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 space-y-1.5">
       <div className="flex items-center gap-1.5 text-white/25">
         {icon}
-        <span className="text-[10px] uppercase tracking-wider">{label}</span>
+        <span className="text-label uppercase tracking-wider">{label}</span>
       </div>
-      <p className="text-sm font-mono font-bold text-[#f0f0f0]">{value}</p>
+      <p className="text-sm font-mono font-bold text-foreground">{value}</p>
     </div>
   )
 }

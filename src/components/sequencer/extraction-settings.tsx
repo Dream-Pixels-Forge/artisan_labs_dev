@@ -112,7 +112,7 @@ export function ExtractionSettings({
           disabled={isExtracting}
           className="py-1"
         />
-        <div className="flex justify-between text-[10px] text-white/20">
+        <div className="flex justify-between text-label text-white/20">
           <span>0.1 FPS</span>
           <span>10 FPS</span>
         </div>
@@ -132,7 +132,7 @@ export function ExtractionSettings({
             <SelectTrigger className="w-[180px] border-white/[0.1] bg-white/[0.04] text-white/80 focus:ring-orange-500/30 focus:border-orange-500/40">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="border-white/[0.1] bg-[#1a1a1a]">
+            <SelectContent className="border-white/[0.1] bg-surface-2">
               {FORMAT_OPTIONS.map((opt) => (
                 <SelectItem
                   key={opt.value}
@@ -174,7 +174,7 @@ export function ExtractionSettings({
           disabled={isExtracting}
           className="py-1"
         />
-        <div className="flex justify-between text-[10px] text-white/20">
+        <div className="flex justify-between text-label text-white/20">
           <span>10%</span>
           <span>100%</span>
         </div>
@@ -199,11 +199,11 @@ export function ExtractionSettings({
           disabled={isExtracting}
           className="py-1"
         />
-        <div className="flex justify-between text-[10px] text-white/20">
+        <div className="flex justify-between text-label text-white/20">
           <span>10%</span>
           <span>200%</span>
         </div>
-        <p className="text-[11px] text-white/25">
+        <p className="text-label text-white/25">
           Output: {Math.max(1, Math.round(videoWidth * resizeFactor * upscaling))}&times;
           {Math.max(1, Math.round(videoHeight * resizeFactor * upscaling))} px
         </p>
@@ -215,7 +215,7 @@ export function ExtractionSettings({
           <Label className="text-xs font-medium text-white/60 cursor-pointer">
             Enhance Frames
           </Label>
-          <p className="text-[11px] text-white/25">
+          <p className="text-label text-white/25">
             Contrast +15% &middot; Saturation +15% &middot; Brightness +5%
           </p>
         </div>

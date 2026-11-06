@@ -249,7 +249,7 @@ export function FeedbackForm() {
         )}
       </AnimatePresence>
 
-      <p className="text-center text-[10px] text-white/20">
+      <p className="text-center text-label text-white/20">
         No account needed &middot; Usually responds within 24h
       </p>
     </form>

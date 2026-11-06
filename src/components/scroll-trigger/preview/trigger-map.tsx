@@ -134,7 +134,7 @@ export function TriggerMapVisualization({
                 className="absolute top-0 flex items-center justify-center overflow-hidden"
                 style={{ left: `${left}%`, width: `${width}%` }}
               >
-                <span className="text-[9px] font-medium text-white/40 truncate px-1">
+                <span className="text-label font-medium text-white/40 truncate px-1">
                   {section.scene.label}
                 </span>
               </div>
@@ -188,7 +188,7 @@ export function TriggerMapVisualization({
         </motion.div>
       </div>
 
-      <p className="text-[10px] text-white/20 leading-relaxed">
+      <p className="text-label text-white/20 leading-relaxed">
         {SCROLL_MODE_INFO[map.config.mode]?.description}
       </p>
     </div>

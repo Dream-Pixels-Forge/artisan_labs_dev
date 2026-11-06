@@ -315,7 +315,7 @@ export default function ScrollPreview({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex flex-col bg-[#0a0a0a]"
+          className="fixed inset-0 z-50 flex flex-col bg-surface-0"
         >
           {/* Fullscreen top bar */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] shrink-0">

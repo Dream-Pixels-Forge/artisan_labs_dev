@@ -202,7 +202,7 @@ export default function ScrollTriggerPanel({
                     <SelectTrigger className="w-[70px] h-7 text-xs border-white/[0.1] bg-white/[0.04] text-white/70 focus:ring-orange-500/30 focus:border-orange-500/40">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="border-white/[0.1] bg-[#1a1a1a]">
+                    <SelectContent className="border-white/[0.1] bg-surface-2">
                       <SelectItem value="px" className="text-white/70 focus:text-white focus:bg-white/[0.06]">px</SelectItem>
                       <SelectItem value="vh" className="text-white/70 focus:text-white focus:bg-white/[0.06]">vh</SelectItem>
                       <SelectItem value="vw" className="text-white/70 focus:text-white focus:bg-white/[0.06]">vw</SelectItem>
@@ -219,11 +219,11 @@ export default function ScrollTriggerPanel({
                 disabled={disabled}
                 className="py-1"
               />
-              <div className="flex justify-between text-[10px] text-white/20">
+              <div className="flex justify-between text-label text-white/20">
                 <span>100</span>
                 <span>10,000 {config.scrollUnit}</span>
               </div>
-              <p className="text-[11px] text-white/20">
+              <p className="text-label text-white/20">
                 ≈ {scrollToPixels(config.scrollDistance, config.scrollUnit).toLocaleString()} px
               </p>
             </div>
@@ -236,7 +236,7 @@ export default function ScrollTriggerPanel({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-white/35">Start</span>
+                    <span className="text-label text-white/35">Start</span>
                     <span className="text-xs font-mono text-orange-400">
                       {(config.triggerStart * 100).toFixed(0)}%
                     </span>
@@ -253,7 +253,7 @@ export default function ScrollTriggerPanel({
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-white/35">End</span>
+                    <span className="text-label text-white/35">End</span>
                     <span className="text-xs font-mono text-orange-400">
                       {(config.triggerEnd * 100).toFixed(0)}%
                     </span>
@@ -284,7 +284,7 @@ export default function ScrollTriggerPanel({
                 <SelectTrigger className="w-full border-white/[0.1] bg-white/[0.04] text-white/80 focus:ring-orange-500/30 focus:border-orange-500/40">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="border-white/[0.1] bg-[#1a1a1a]">
+                <SelectContent className="border-white/[0.1] bg-surface-2">
                   {OVERSHOOT_OPTIONS.map((opt) => (
                     <SelectItem
                       key={opt.value}
@@ -293,7 +293,7 @@ export default function ScrollTriggerPanel({
                     >
                       <span className="flex items-center justify-between gap-8">
                         <span>{opt.label}</span>
-                        <span className="text-[10px] text-white/30">{opt.desc}</span>
+                        <span className="text-label text-white/30">{opt.desc}</span>
                       </span>
                     </SelectItem>
                   ))}
@@ -309,7 +309,7 @@ export default function ScrollTriggerPanel({
                   <Label className="text-xs font-medium text-white/60 cursor-pointer">
                     Pin Element
                   </Label>
-                  <p className="text-[11px] text-white/25">
+                  <p className="text-label text-white/25">
                     Fix element to viewport during scroll trigger
                   </p>
                 </div>
@@ -341,7 +341,7 @@ export default function ScrollTriggerPanel({
                 disabled={disabled}
                 className="py-1"
               />
-              <div className="flex justify-between text-[10px] text-white/20">
+              <div className="flex justify-between text-label text-white/20">
                 <span>Instant (0)</span>
                 <span>Very smooth (0.95)</span>
               </div>
@@ -355,7 +355,7 @@ export default function ScrollTriggerPanel({
                   <Label className="text-xs font-medium text-white/60 cursor-pointer">
                     Snap to Frame
                   </Label>
-                  <p className="text-[11px] text-white/25">
+                  <p className="text-label text-white/25">
                     Snap scroll position to nearest frame boundary
                   </p>
                 </div>

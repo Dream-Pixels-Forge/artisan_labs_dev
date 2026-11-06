@@ -331,7 +331,7 @@ export default function Sequencer() {
     progressTotal > 0 ? Math.round((progressCount / progressTotal) * 100) : 0
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-[#f0f0f0] pt-14">
+    <div className="min-h-screen bg-surface-0 text-foreground pt-14">
       {/* Ambient glow */}
       <div className="pointer-events-none absolute top-0 left-1/3 h-[400px] w-[600px] rounded-full bg-gradient-to-b from-orange-500/[0.05] via-red-500/[0.02] to-transparent blur-3xl" />
 
@@ -347,7 +347,7 @@ export default function Sequencer() {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-500/10">
               <Film className="h-4.5 w-4.5 text-orange-400" />
             </div>
-            <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-[#f0f0f0]">
+            <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-foreground">
               SEQUENCER
             </h1>
           </div>
@@ -463,33 +463,33 @@ export default function Sequencer() {
                       <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-4 py-3 space-y-1">
                         <div className="flex items-center gap-1.5 text-white/30">
                           <Layers className="h-3 w-3" />
-                          <span className="text-[10px] uppercase tracking-wider">
+                          <span className="text-label uppercase tracking-wider">
                             Est. Frames
                           </span>
                         </div>
-                        <p className="text-lg font-mono font-bold text-[#f0f0f0]">
+                        <p className="text-lg font-mono font-bold text-foreground">
                           {estimatedFrames.toLocaleString()}
                         </p>
                       </div>
                       <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-4 py-3 space-y-1">
                         <div className="flex items-center gap-1.5 text-white/30">
                           <HardDrive className="h-3 w-3" />
-                          <span className="text-[10px] uppercase tracking-wider">
+                          <span className="text-label uppercase tracking-wider">
                             Est. Size
                           </span>
                         </div>
-                        <p className="text-lg font-mono font-bold text-[#f0f0f0]">
+                        <p className="text-lg font-mono font-bold text-foreground">
                           {formatBytes(estimatedSize)}
                         </p>
                       </div>
                       <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-4 py-3 space-y-1">
                         <div className="flex items-center gap-1.5 text-white/30">
                           <Clock className="h-3 w-3" />
-                          <span className="text-[10px] uppercase tracking-wider">
+                          <span className="text-label uppercase tracking-wider">
                             Est. Time
                           </span>
                         </div>
-                        <p className="text-lg font-mono font-bold text-[#f0f0f0]">
+                        <p className="text-lg font-mono font-bold text-foreground">
                           {estimatedTime >= 60000
                             ? `${Math.ceil(estimatedTime / 60000)}m ${Math.round((estimatedTime % 60000) / 1000)}s`
                             : `${Math.ceil(estimatedTime / 1000)}s`}
@@ -513,7 +513,7 @@ export default function Sequencer() {
               </Tabs>
 
               {/* ════════════════════ Sticky Extract Bar ════════════════════ */}
-              <div className="mt-4 sticky bottom-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pb-6 pt-3 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a] to-transparent">
+              <div className="mt-4 sticky bottom-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pb-6 pt-3 bg-gradient-to-t from-surface-0 via-surface-0 to-transparent">
                 {!isExtracting ? (
                   <Button
                     onClick={handleExtract}

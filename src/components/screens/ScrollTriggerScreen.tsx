@@ -107,7 +107,7 @@ export default function ScrollTriggerScreen() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-[#f0f0f0] pt-14 pb-24 md:pb-8 relative overflow-hidden">
+    <div className="min-h-screen bg-surface-0 text-foreground pt-14 pb-24 md:pb-8 relative overflow-hidden">
       {/* Ambient glow */}
       <div className="pointer-events-none absolute top-0 right-1/4 h-[400px] w-[600px] rounded-full bg-gradient-to-b from-orange-500/[0.04] via-red-500/[0.02] to-transparent blur-3xl" />
 
@@ -126,7 +126,7 @@ export default function ScrollTriggerScreen() {
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-500/10">
                     <MousePointerClick className="h-4.5 w-4.5 text-orange-400" />
                   </div>
-                  <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-[#f0f0f0]">
+                  <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-foreground">
                     SCROLL TRIGGER
                   </h1>
                 </div>
@@ -274,14 +274,14 @@ export default function ScrollTriggerScreen() {
 
             {/* Panel */}
             <motion.div
-              className="fixed inset-y-0 right-0 z-50 w-full max-w-lg bg-[#0a0a0a]/95 backdrop-blur-xl border-l border-white/[0.08] shadow-2xl overflow-y-auto"
+              className="fixed inset-y-0 right-0 z-50 w-full max-w-lg bg-surface-0/95 backdrop-blur-xl border-l border-white/[0.08] shadow-2xl overflow-y-auto"
               initial="closed"
               animate="open"
               exit="closed"
               variants={panelVariants}
             >
               {/* Header */}
-              <div className="sticky top-0 z-10 bg-[#0a0a0a]/90 backdrop-blur-xl border-b border-white/[0.06] px-6 py-4">
+              <div className="sticky top-0 z-10 bg-surface-0/90 backdrop-blur-xl border-b border-white/[0.06] px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500/10">
@@ -292,10 +292,10 @@ export default function ScrollTriggerScreen() {
                       )}
                     </div>
                     <div>
-                      <h2 className="text-sm font-bold text-[#f0f0f0] capitalize">
+                      <h2 className="text-sm font-bold text-foreground capitalize">
                         {panelMode === 'modes' ? 'Scroll Modes' : 'Settings'}
                       </h2>
-                      <p className="text-[10px] text-white/30">
+                      <p className="text-label text-white/30">
                         {panelMode === 'modes'
                           ? 'Choose how frames map to scroll position'
                           : 'Fine-tune scroll distance and behavior'}

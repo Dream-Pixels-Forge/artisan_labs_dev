@@ -64,7 +64,7 @@ export function FrameDisplayArea({
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <Film className="h-10 w-10 text-white/8 mb-3" />
             <p className="text-xs text-white/20">No frames extracted yet</p>
-            <p className="text-[10px] text-white/10 mt-1">
+            <p className="text-label text-white/10 mt-1">
               Extract frames from a video to preview the scroll trigger
             </p>
           </div>
@@ -75,11 +75,11 @@ export function FrameDisplayArea({
       <div className="absolute top-3 left-3 flex items-center gap-2 pointer-events-none">
         <div className="flex items-center gap-1.5 rounded-md bg-black/70 backdrop-blur-sm border border-white/[0.08] px-2.5 py-1">
           <Film className="h-3 w-3 text-orange-400" />
-          <span className="text-[11px] font-mono font-medium text-white/80">
+          <span className="text-label font-mono font-medium text-white/80">
             {currentFrameIndex + 1}
           </span>
-          <span className="text-[11px] font-mono text-white/30">/</span>
-          <span className="text-[11px] font-mono text-white/40">
+          <span className="text-label font-mono text-white/30">/</span>
+          <span className="text-label font-mono text-white/40">
             {map.eventCount}
           </span>
         </div>
@@ -88,7 +88,7 @@ export function FrameDisplayArea({
       {/* Scroll position overlay */}
       <div className="absolute top-3 right-3 pointer-events-none">
         <div className="rounded-md bg-black/70 backdrop-blur-sm border border-white/[0.08] px-2.5 py-1">
-          <span className="text-[11px] font-mono text-white/50">
+          <span className="text-label font-mono text-white/50">
             {Math.round(scrollPosition)} px
           </span>
         </div>

@@ -63,13 +63,13 @@ function InfoCard({
 }) {
   return (
     <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 space-y-1.5">
-      <span className="text-[10px] uppercase tracking-wider text-white/25 block">
+      <span className="text-label uppercase tracking-wider text-white/25 block">
         {label}
       </span>
-      <p className={`text-sm font-mono font-bold ${highlight ? 'text-orange-400' : 'text-[#f0f0f0]'}`}>
+      <p className={`text-sm font-mono font-bold ${highlight ? 'text-orange-400' : 'text-foreground'}`}>
         {value}
       </p>
-      <div className="text-[10px] text-white/20 leading-snug">{sub}</div>
+      <div className="text-label text-white/20 leading-snug">{sub}</div>
     </div>
   )
 }

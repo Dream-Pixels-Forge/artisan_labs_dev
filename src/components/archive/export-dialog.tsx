@@ -202,7 +202,7 @@ export function ExportSequenceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0a0a0a]/98 border border-white/[0.08] text-[#f0f0f0] max-w-4xl w-[calc(100%-2rem)] h-[85vh] flex flex-col p-0 gap-0 overflow-hidden shadow-2xl shadow-black/80 backdrop-blur-xl">
+      <DialogContent className="bg-surface-0/98 border border-white/[0.08] text-foreground max-w-4xl w-[calc(100%-2rem)] h-[85vh] flex flex-col p-0 gap-0 overflow-hidden shadow-2xl shadow-black/80 backdrop-blur-xl">
 
         {/* ── Header ── */}
         <div className="px-6 py-4 border-b border-white/[0.06] flex items-center justify-between shrink-0">
@@ -214,12 +214,12 @@ export function ExportSequenceDialog({
               <DialogTitle className="text-sm font-bold text-white/90 tracking-tight">
                 Scrollytelling Developer Exporter
               </DialogTitle>
-              <DialogDescription className="text-[11px] text-white/40 font-mono mt-0.5">
+              <DialogDescription className="text-label text-white/40 font-mono mt-0.5">
                 {sequence.name} &middot; {sequence.frameCount} frames &middot; {sequence.width}×{sequence.height} &middot; {ext.toUpperCase()}
               </DialogDescription>
             </div>
           </div>
-          <Badge variant="outline" className="text-[10px] uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-mono">
+          <Badge variant="outline" className="text-label uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-mono">
             {isResponsive ? 'Responsive' : 'Single-Res'}
           </Badge>
         </div>
@@ -232,7 +232,7 @@ export function ExportSequenceDialog({
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="flex-1 text-[11px] gap-1.5 rounded-md transition-all data-[state=active]:bg-white/[0.08] data-[state=active]:text-white text-white/40 h-7"
+                  className="flex-1 text-label gap-1.5 rounded-md transition-all data-[state=active]:bg-white/[0.08] data-[state=active]:text-white text-white/40 h-7"
                 >
                   <tab.icon className="h-3 w-3" />
                   {tab.label}
@@ -270,9 +270,9 @@ export function ExportSequenceDialog({
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-white/80">Responsive Multi-Resolution</span>
-                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/10">RECOMMENDED</span>
+                        <span className="text-label font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/10">RECOMMENDED</span>
                       </div>
-                      <p className="text-[11px] text-white/35 leading-relaxed">
+                      <p className="text-label text-white/35 leading-relaxed">
                         Desktop (1920px), Tablet (1024px), Mobile (640px). Saves up to 82% mobile bandwidth.
                       </p>
                     </div>
@@ -293,7 +293,7 @@ export function ExportSequenceDialog({
                     </div>
                     <div className="space-y-1">
                       <span className="text-xs font-bold text-white/80">Original Single-Resolution</span>
-                      <p className="text-[11px] text-white/35 leading-relaxed">
+                      <p className="text-label text-white/35 leading-relaxed">
                         Frames at original scale in a flat directory. Best for desktop-only experiences.
                       </p>
                     </div>
@@ -302,7 +302,7 @@ export function ExportSequenceDialog({
                   {/* Progress */}
                   {isGenerating && (
                     <div className="space-y-2 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                      <div className="flex items-center justify-between text-[11px] font-mono">
+                      <div className="flex items-center justify-between text-label font-mono">
                         <span className="text-white/50 flex items-center gap-2">
                           <Loader2 className="h-3 w-3 animate-spin text-emerald-400" />
                           {generationStatus}
@@ -327,10 +327,10 @@ export function ExportSequenceDialog({
 
                 {/* Right: Package contents */}
                 <div className="lg:col-span-2 space-y-3 p-4 rounded-xl border border-white/[0.05] bg-white/[0.01]">
-                  <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                  <h4 className="text-label font-bold text-white/40 uppercase tracking-widest">
                     Package Contents
                   </h4>
-                  <ul className="space-y-2.5 text-[11px] text-white/45">
+                  <ul className="space-y-2.5 text-label text-white/45">
                     <li className="flex items-start gap-2">
                       <span className="text-emerald-400 mt-0.5">✓</span>
                       <span><strong className="text-white/60">Frame Bundle</strong> — {isResponsive ? '3 resolution folders' : 'single folder'} with {sequence.frameCount} frames</span>
@@ -357,7 +357,7 @@ export function ExportSequenceDialog({
                     </li>
                   </ul>
                   <div className="pt-2 border-t border-white/[0.04]">
-                    <p className="text-[10px] text-white/25 font-mono">
+                    <p className="text-label text-white/25 font-mono">
                       {formatBytes(sequence.fileSize)} source &middot; {sequence.format.toUpperCase()} format
                     </p>
                   </div>
@@ -376,10 +376,10 @@ export function ExportSequenceDialog({
                   {/* Action bar */}
                   <div className="px-6 py-2.5 shrink-0 flex items-center justify-between border-b border-white/[0.04] bg-white/[0.005]">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-[10px] font-mono bg-white/[0.03] text-white/40 border-white/[0.06]">
+                      <Badge variant="outline" className="text-label font-mono bg-white/[0.03] text-white/40 border-white/[0.06]">
                         {labels[type]}
                       </Badge>
-                      <span className="text-[10px] text-white/25">
+                      <span className="text-label text-white/25">
                         {isResponsive ? 'Responsive paths' : 'Standard paths'}
                       </span>
                     </div>
@@ -387,7 +387,7 @@ export function ExportSequenceDialog({
                       size="sm"
                       variant="ghost"
                       onClick={() => handleCopy(code, type)}
-                      className="h-7 gap-1.5 text-[11px] text-white/50 hover:text-white hover:bg-white/[0.06]"
+                      className="h-7 gap-1.5 text-label text-white/50 hover:text-white hover:bg-white/[0.06]"
                     >
                       {isCopied ? (
                         <>
@@ -404,7 +404,7 @@ export function ExportSequenceDialog({
                   </div>
 
                   {/* Code block */}
-                  <div className="flex-1 overflow-auto p-5 font-mono text-[11px] leading-relaxed text-white/70 bg-[#070707]">
+                  <div className="flex-1 overflow-auto p-5 font-mono text-label leading-relaxed text-white/70 bg-surface-0">
                     <pre className="whitespace-pre select-all">{code}</pre>
                   </div>
                 </TabsContent>

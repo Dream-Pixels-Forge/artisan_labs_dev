@@ -46,7 +46,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} antialiased bg-[#0a0a0a] text-[#f0f0f0]`}
+        className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} antialiased bg-surface-0 text-foreground`}
       >
         <ErrorBoundary>
           <SmoothScroll>

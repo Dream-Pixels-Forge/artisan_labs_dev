@@ -149,10 +149,10 @@ export function ScrollDrivenDemo() {
               <Play className="h-4 w-4 text-orange-400" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold tracking-tight text-[#f0f0f0]">
+              <h3 className="text-sm font-semibold tracking-tight text-foreground">
                 Live Scroll-to-Frame Demo
               </h3>
-              <p className="text-[10px] text-white/30 font-mono">
+              <p className="text-label text-white/30 font-mono">
                 32 frames &middot; Scroll down to scrub &middot; Real output
               </p>
             </div>
@@ -163,7 +163,7 @@ export function ScrollDrivenDemo() {
                 setIsPlaying((v) => !v)
                 if (!isPlaying) directionRef.current = 1
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] border border-white/[0.1] text-[10px] text-white/50 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] border border-white/[0.1] text-label text-white/50 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer"
             >
               {isPlaying ? (
                 <><PauseIcon className="h-3 w-3" /> Pause</>
@@ -223,7 +223,7 @@ export function ScrollDrivenDemo() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-xl rounded-lg px-3 py-1.5 text-[10px] font-mono text-white/40 border border-white/[0.1] z-10 flex items-center gap-1.5"
+                className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-xl rounded-lg px-3 py-1.5 text-label font-mono text-white/40 border border-white/[0.1] z-10 flex items-center gap-1.5"
               >
                 <ArrowDown className="h-3 w-3 animate-bounce" />
                 Scroll to scrub
@@ -244,7 +244,7 @@ export function ScrollDrivenDemo() {
 
           {/* Vertical scrub rail — tall, beside the viewport */}
           <div className="hidden sm:flex flex-col items-center gap-2 py-1">
-            <span className="text-[8px] font-mono text-white/20">100%</span>
+            <span className="text-label font-mono text-white/20">100%</span>
             <div
               ref={trackRef}
               className="relative w-3 flex-1 rounded-full bg-white/[0.06] border border-white/[0.08] cursor-pointer select-none touch-none min-h-[200px]"
@@ -274,7 +274,7 @@ export function ScrollDrivenDemo() {
                 />
               ))}
             </div>
-            <span className="text-[8px] font-mono text-white/20">0%</span>
+            <span className="text-label font-mono text-white/20">0%</span>
           </div>
         </div>
 

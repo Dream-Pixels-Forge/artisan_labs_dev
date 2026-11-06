@@ -126,7 +126,7 @@ export function ModeSelector({
                 </p>
 
                 {/* Best for */}
-                <p className="text-[10px] leading-snug text-white/25 group-hover:text-white/35 transition-colors">
+                <p className="text-label leading-snug text-white/25 group-hover:text-white/35 transition-colors">
                   {info.bestFor}
                 </p>
               </motion.button>
@@ -150,7 +150,7 @@ export function ModeSelector({
             </div>
             <div className="space-y-1">
               <p className="text-xs font-medium text-white/60">{selectedInfo.label}</p>
-              <p className="text-[11px] leading-relaxed text-white/35">
+              <p className="text-label leading-relaxed text-white/35">
                 {selectedInfo.description}
               </p>
             </div>

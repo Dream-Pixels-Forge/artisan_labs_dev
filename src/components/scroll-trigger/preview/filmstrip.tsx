@@ -148,7 +148,7 @@ export function FilmstripSection({
               )}
 
               <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent px-1 py-0.5">
-                <span className="text-[8px] font-mono text-white/60 block text-center">
+                <span className="text-label font-mono text-white/60 block text-center">
                   {actualFrameIndex + 1}
                 </span>
               </div>
@@ -173,16 +173,16 @@ export function FilmstripSection({
               <p className={`text-xs font-medium ${modeStyle.textColor}`}>
                 {modeInfo.label} Mode
               </p>
-              <p className={`text-[11px] leading-relaxed ${modeStyle.descColor}`}>
+              <p className={`text-label leading-relaxed ${modeStyle.descColor}`}>
                 {modeInfo.description}
               </p>
               {mode === 'manual' && (
-                <p className={`text-[10px] ${modeStyle.hintColor} mt-1.5`}>
+                <p className={`text-label ${modeStyle.hintColor} mt-1.5`}>
                   Use the frame numbers above to define which frames appear at which scroll positions in the configuration panel.
                 </p>
               )}
               {mode === 'scene' && (
-                <p className={`text-[10px] ${modeStyle.hintColor} mt-1.5`}>
+                <p className={`text-label ${modeStyle.hintColor} mt-1.5`}>
                   Define scene breakpoints using frame numbers from the filmstrip above. Each scene controls its own scroll space allocation.
                 </p>
               )}
