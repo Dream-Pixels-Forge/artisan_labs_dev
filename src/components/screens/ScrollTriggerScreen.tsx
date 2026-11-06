@@ -62,10 +62,6 @@ export default function ScrollTriggerScreen() {
     setScrollMap(map)
   }, [])
 
-  const handleConfigChange = useCallback(() => {
-    // no-op for standalone screen
-  }, [])
-
   const handleOpenPanel = useCallback((mode: 'modes' | 'settings') => {
     setPanelMode(mode)
     setIsPanelOpen(true)
@@ -191,7 +187,7 @@ export default function ScrollTriggerScreen() {
                     </>
                   ) : hasVideo ? (
                     <>
-                      Source: <span className="text-white/70">{currentVideo!.name}</span>
+                      Source: <span className="text-white/70">{currentVideo?.name}</span>
                       <span className="text-white/25 ml-1">&middot; {frameCount} estimated frames</span>
                     </>
                   ) : (
@@ -206,7 +202,7 @@ export default function ScrollTriggerScreen() {
                 <>
                   <div className="text-white/15">&middot;</div>
                   <span className="text-xs font-mono text-white/40">
-                    {currentVideo!.duration.toFixed(1)}s duration
+                    {currentVideo?.duration?.toFixed(1)}s duration
                   </span>
                 </>
               )}
@@ -322,7 +318,6 @@ export default function ScrollTriggerScreen() {
                 <ScrollTriggerPanel
                   frameCount={frameCount}
                   frameTimestamps={currentVideo?.frameTimestamps}
-                  onConfigChange={handleConfigChange}
                   onPreviewRequest={handleScrollPreviewRequest}
                   disabled={false}
                   config={config}

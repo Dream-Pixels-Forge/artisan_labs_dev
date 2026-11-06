@@ -1,18 +1,15 @@
 /**
  * Environment Variable Validation
- * Validates required environment variables at application startup
+ * Validates required environment variables at application startup and
+ * enforces secret strength so secrets are never silently missing in production.
  */
 
 const requiredEnvVars: string[] = [
-  // Add required env vars here as needed
-  // 'DATABASE_URL',
-  // 'NEXTAUTH_SECRET',
-  // 'API_KEY',
+  'NEXTAUTH_SECRET',
 ]
 
 const optionalEnvVars: string[] = [
   'DATABASE_URL',
-  'NEXTAUTH_SECRET',
   'NEXTAUTH_URL',
 ]
 
@@ -49,12 +46,28 @@ export function validateEnv(): ValidationResult {
   }
 }
 
+export function validateSecretStrength(secret: string): boolean {
+  return (
+    secret.length >= 32 &&
+    /[A-Z]/.test(secret) &&
+    /[a-z]/.test(secret) &&
+    /[0-9]/.test(secret)
+  )
+}
+
 export function assertEnv(): void {
   const result = validateEnv()
-  
+
   if (result.missing.length > 0) {
     throw new Error(
-      `Missing required environment variables: ${result.missing.join(', ')}`
+      `[Env] Missing required environment variables: ${result.missing.join(', ')}`,
+    )
+  }
+
+  const secret = process.env.NEXTAUTH_SECRET
+  if (secret && !validateSecretStrength(secret)) {
+    throw new Error(
+      '[Env] NEXTAUTH_SECRET is too weak: use >=32 chars with uppercase, lowercase, and a digit.',
     )
   }
 
@@ -68,7 +81,7 @@ if (process.env.NODE_ENV === 'development') {
   const result = validateEnv()
   if (result.missing.length > 0) {
     console.warn(
-      `[Env] Missing env vars (optional in dev): ${result.missing.join(', ')}`
+      `[Env] Missing env vars (optional in dev): ${result.missing.join(', ')}`,
     )
   }
 }

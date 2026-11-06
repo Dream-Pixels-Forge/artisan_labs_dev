@@ -1,405 +1,168 @@
 # Security Audit Report
 
 **Project:** Artisan Labs Dev  
-**Location:** `D:\AI\DREAM-PIXELS-FORGE\MVP\DEVS\APPS\artisan_labs_dev`  
-**Audit Date:** April 4, 2026  
-**Project Type:** Next.js 14+ Web Application  
+**Location:** `Dev/app/artisan_labs_dev`  
+**Stack:** Next.js 16 (App Router), React 19, TypeScript strict, Tailwind 4, Zustand + IndexedDB  
+**Audit Date:** (current)  
+**Project Type:** Client-side scrollytelling sequence optimizer (no auth, no database in current build)
 
 ---
 
 ## Executive Summary
 
-This security audit identified **2 Critical**, **3 High**, **3 Medium**, and **2 Low** severity vulnerabilities across the Next.js application. The project requires immediate security hardening before production deployment.
+This audit reviews the current state of the Artisan Labs codebase. The application is a client-heavy Next.js app that extracts video frames, maps them to scroll-trigger events, and exports JSON/JS/CSS configs. It persists data in IndexedDB (not localStorage) and Zustand memory.
+
+Identified issues: **1 Critical**, **1 High**, **2 Medium**, **3 Low**.
 
 | Category | Critical | High | Medium | Low |
 |----------|----------|------|--------|-----|
-| Security Headers | 1 | 0 | 0 | 0 |
-| CSRF Protection | 1 | 0 | 0 | 0 |
-| Data Protection | 0 | 1 | 1 | 1 |
-| Input Validation | 0 | 1 | 1 | 0 |
-| API Security | 0 | 0 | 1 | 0 |
-| Dependencies | 0 | 1 | 0 | 1 |
-| **TOTAL** | **2** | **3** | **3** | **2** |
+| CSRF / Form submission | 1 | 0 | 0 | 0 |
+| Environment validation | 0 | 1 | 0 | 0 |
+| CI / Testing | 0 | 0 | 1 | 0 |
+| Documentation accuracy | 0 | 0 | 1 | 0 |
+| Package manager | 0 | 0 | 0 | 1 |
+| TS target / dead code | 0 | 0 | 0 | 2 |
+| **TOTAL** | **1** | **1** | **2** | **3** |
 
 ---
 
 ## Vulnerability Findings
 
-### Critical Vulnerabilities (Immediate Action Required)
+### Critical — Fix before production deploy
 
-#### 1. Missing Security Headers Configuration
-
-**Severity:** Critical  
-**Location:** `next.config.ts`  
-**CWE:** CWE-346: Origin Validation Error, CWE-16: Configuration
-
-**Finding:** The Next.js configuration lacks critical security headers. Without proper security headers, the application is vulnerable to various attacks including XSS, clickjacking, and MIME type sniffing.
-
-**Current Configuration:**
-```typescript
-const nextConfig: NextConfig = {
-  output: "standalone",
-  typescript: {
-    ignoreBuildErrors: false,
-  },
-  reactStrictMode: true,
-};
-```
-
-**Missing Headers:**
-- `Content-Security-Policy` (CSP)
-- `X-Content-Type-Options`
-- `X-Frame-Options`
-- `Referrer-Policy`
-- `Permissions-Policy`
-
-**Remediation:**
-```typescript
-// next.config.ts
-async headers() {
-  return [
-    {
-      source: '/:path*',
-      headers: [
-        { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self' data:;" },
-        { key: 'X-Content-Type-Options', value: 'nosniff' },
-        { key: 'X-Frame-Options', value: 'DENY' },
-        { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-        { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-      ],
-    },
-  ];
-}
-```
-
-**Priority:** P1 - Fix within 24 hours
-
----
-
-#### 2. Form Submission Without CSRF Protection
+#### 1. Feedback form submits to hardcoded external endpoint without CSRF
 
 **Severity:** Critical  
-**Location:** `src/components/feedback-form.tsx`  
-**CWE:** CWE-352: Cross-Site Request Forgery (CSRF)
+**Location:** `src/components/feedback-form.tsx` (pre-fix), `src/app/api/feedback/route.ts` (fix)  
+**CWE:** CWE-352: Cross-Site Request Forgery, CWE-798: Use of Hard-coded Credentials
 
-**Finding:** The feedback form submits data directly to an external service (Formspree) without CSRF tokens or origin validation.
+**Finding:** The form POSTed directly to a hardcoded Formspree endpoint (`https://formspree.io/f/xaqllokg`) baked into client code, with no CSRF token or origin validation. A malicious site could trigger forged submissions from a logged-in visitor's browser.
 
-**Current Implementation:**
-```typescript
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xaqllokg'
+**Remediation (implemented):**
+- New server proxy route `src/app/api/feedback/route.ts` that:
+  - Validates `Origin`/`Referer` against `ALLOWED_ORIGINS`
+  - Validates a double-submit CSRF cookie (`csrf_token`) echoed as `X-CSRF-Token` header
+  - Forwards to Formspree using server-side secret `FORMSPREE_ENDPOINT`
+- New `src/app/api/csrf-token/route.ts` that issues the CSRF cookie (`SameSite=strict`)
+- Client form reads `/api/csrf-token` on mount and sends `X-CSRF-Token` with the POST
+- Endpoint moved out of client code into `.env` (`FORMSPREE_ENDPOINT`, `ALLOWED_ORIGINS`)
 
-const handleSubmit = useCallback(async (e: React.FormEvent) => {
-  const response = await fetch(FORMSPREE_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify({ email, message }),
-  })
-```
-
-**Remediation:**
-1. Move endpoint to environment variable
-2. Add origin validation
-3. Implement CSRF token validation
-
-**Priority:** P1 - Fix within 24 hours
+**Status:** Fixed (see `dev-notes/subgoals/subgoal-feedback-form-csrf.md`)
 
 ---
 
-### High Vulnerabilities (Fix Soon)
+### High — Fix this sprint
 
-#### 3. Hardcoded Formspree Endpoint ID Exposed
+#### 2. Environment variable validation was a no-op
 
 **Severity:** High  
-**Location:** `src/components/feedback-form.tsx` (line 13)  
-**CWE:** CWE-798: Use of Hard-coded Credentials
+**Location:** `src/lib/validate-env.ts`, `src/app/layout.tsx`  
+**CWE:** CWE-258: Empty Password Field (missing secret enforcement)
 
-**Finding:** The Formspree form endpoint ID (`xaqllokg`) is hardcoded in client-side code.
+**Finding:** `validateEnv()` had an empty `requiredEnvVars` array; `NEXTAUTH_SECRET` and `DATABASE_URL` were listed as optional and never enforced. `assertEnv()` existed but was never called. The app could start in production without required secrets.
 
-**Remediation:**
-```typescript
-// Use environment variable
-const FORMSPREE_ENDPOINT = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT
-```
+**Remediation (implemented):**
+- `requiredEnvVars` now includes `NEXTAUTH_SECRET`
+- `validateSecretStrength()` enforces >=32 chars with mixed case and a digit
+- `assertEnv()` throws on missing/weak required vars and is called server-side in `layout.tsx`
+- `.env.example` documents required + optional vars
 
-**Priority:** P2 - Fix within 1 week
-
----
-
-#### 4. Environment Variable Validation Gaps
-
-**Severity:** High  
-**Location:** `src/lib/validate-env.ts`  
-**CWE:** CWE-258: Empty Password Field
-
-**Finding:** Critical variables like `NEXTAUTH_SECRET` are marked as optional but should be required in production.
-
-**Current State:**
-```typescript
-const optionalEnvVars: string[] = [
-  'DATABASE_URL',
-  'NEXTAUTH_SECRET',  // Should be required!
-  'NEXTAUTH_URL',
-]
-```
-
-**Remediation:**
-```typescript
-const requiredEnvVars: string[] = [
-  'NEXTAUTH_SECRET',
-];
-
-function validateSecretStrength(secret: string): boolean {
-  return secret.length >= 32 && /[A-Z]/.test(secret) && /[a-z]/.test(secret) && /[0-9]/.test(secret);
-}
-```
-
-**Priority:** P2 - Fix within 1 week
+**Status:** Fixed (see `dev-notes/subgoals/subgoal-env-validation.md`)
 
 ---
 
-#### 5. Dependency: PrismJS DOM Clobbering (CVE-2024-53382)
+### Medium — Plan to fix
 
-**Severity:** High  
-**Location:** `react-syntax-highlighter` (transitive dependency)  
-**CVE:** CVE-2024-53382  
-**CVSS:** 6.1 (Moderate)
-
-**Finding:** Prism (aka PrismJS) through 1.29.0 allows DOM Clobbering with resultant XSS for untrusted input.
-
-**Remediation:**
-- Update `react-syntax-highlighter` to latest version (includes prismjs >=1.30.0)
-- Or sanitize user input before passing to highlighter
-
-**Priority:** P2 - Fix within 1 week
-
----
-
-### Medium Vulnerabilities (Plan to Fix)
-
-#### 6. Input Validation Gaps in Scroll Trigger Components
+#### 3. No CI pipeline or automated tests
 
 **Severity:** Medium  
-**Location:** `src/components/scroll-trigger/ScrollTriggerPanel.tsx`  
-**CWE:** CWE-20: Improper Input Validation
+**Location:** repo root (no `.github/workflows`), no `*.test.ts`
 
-**Finding:** The scroll trigger panel accepts user input for frame ranges, scroll distances without bounds validation.
+**Finding:** No type-check, lint, test, or build gate runs on PRs. The only quality check was a manual `pnpm lint`. Regressions can merge undetected.
 
-**Current Code:**
-```typescript
-const handleScrollDistanceChange = useCallback(
-  (val: number[]) => updateConfig({ scrollDistance: val[0] }),
-  // No validation - accepts any value
-```
+**Remediation (implemented):**
+- `.github/workflows/ci.yml`: `pnpm install --frozen-lockfile` → `tsc --noEmit` → `lint` → `test` → `build` on every PR
+- `vitest.config.ts` + `src/lib/scroll-trigger.test.ts` covering all 8 scroll-trigger modes, `getFrameAtScroll`, and exports
+- `package.json`: `test` script + `vitest` devDependency
 
-**Remediation:**
-```typescript
-const handleScrollDistanceChange = useCallback(
-  (val: number[]) => {
-    const safeValue = Math.max(100, Math.min(10000, val[0]));
-    updateConfig({ scrollDistance: safeValue });
-  },
-```
+**Status:** Fixed (see `dev-notes/subgoals/subgoal-ci-tests.md`)
 
-**Priority:** P3 - Fix within 1 month
-
----
-
-#### 7. Error Boundary Exposes Internal Information
+#### 4. SECURITY.md previously listed phantom dependencies
 
 **Severity:** Medium  
-**Location:** `src/components/error-boundary.tsx` (lines 66-67)  
-**CWE:** CWE-209: Information Exposure Through Error Message
+**Location:** `docs/SECURITY.md` (previous version)
 
-**Finding:** The error boundary displays error messages that expose internal application details.
+**Finding:** The prior audit reported `react-syntax-highlighter`/PrismJS CVE-2024-53382, `next-auth`, and `radix-ui` — none of which appear in `package.json`. This misleads maintainers about actual risk.
 
-```typescript
-{this.state.error && (
-  <p className="text-xs text-zinc-500 font-mono bg-zinc-900/50 p-2 rounded">
-    {this.state.error.message}  // Exposes sensitive info
-  </p>
-)}
-```
+**Remediation:** Rewrote `docs/SECURITY.md` to reflect the real dependency tree and current findings; removed phantom CVE entries.
 
-**Remediation:**
-```typescript
-{process.env.NODE_ENV === 'development' && this.state.error && (
-  <p className="...">{this.state.error.message}</p>
-)}
-```
-
-**Priority:** P3 - Fix within 1 month
+**Status:** Fixed (this document)
 
 ---
 
-#### 8. No Rate Limiting on API Routes
+### Low — Nice to have
 
-**Severity:** Medium  
-**Location:** `src/app/api/route.ts`  
-**CWE:** CWE-770: Allocation of Resources Without Limits
-
-**Finding:** The single API route lacks rate limiting, making it vulnerable to abuse.
-
-**Remediation:** Implement rate limiting:
-```typescript
-import { rateLimit } from '@/lib/rate-limit';
-
-const rateLimiter = rateLimit({
-  interval: 60 * 1000, // 1 minute
-  max: 100, // 100 requests per minute
-});
-
-export async function GET(req: Request) {
-  await rateLimiter.check(req);
-  // ... rest of handler
-}
-```
-
-**Priority:** P3 - Fix within 1 month
-
----
-
-### Low Priority Issues
-
-#### 9. Missing Security ESLint Rules
+#### 5. Package manager not standardized
 
 **Severity:** Low  
-**Location:** `package.json`
+**Location:** `vercel.json`, `README.md`, `bun.lock`, `pnpm-lock.yaml`
 
-**Finding:** Project uses default ESLint configuration without security-specific rules.
+**Finding:** `pnpm-lock.yaml` exists (DPF standard is pnpm), but `vercel.json` and `README` referenced `bun install`/`bun run`, and `bun.lock` was committed. Mixed signals break reproducible installs.
 
-**Remediation:**
-```bash
-npm install --save-dev eslint-plugin-security @typescript-eslint/eslint-plugin
-```
+**Remediation:** Standardized on pnpm everywhere (`vercel.json`, `README`), removed `bun.lock`, kept `pnpm-lock.yaml`.
 
-**Priority:** P4 - Fix within 3 months
+**Status:** Fixed (see `dev-notes/subgoals/subgoal-package-manager-standardize.md`)
+
+#### 6. TypeScript target older than necessary
+
+**Severity:** Low  
+**Location:** `tsconfig.json`
+
+**Finding:** `target` was `ES2017` for a Next.js 16 / React 19 project; DPF shared base uses `ES2022`.
+
+**Remediation:** Bumped `target` to `ES2022`.
+
+**Status:** Fixed (see `dev-notes/subgoals/subgoal-tsconfig-upgrade.md`)
+
+#### 7. `suppressHydrationWarning` masked hydration mismatches
+
+**Severity:** Low  
+**Location:** `src/app/layout.tsx`
+
+**Finding:** `<html>` carried `suppressHydrationWarning`, hiding real server/client hydration mismatches.
+
+**Remediation:** Removed the flag so mismatches surface in the console.
+
+**Status:** Fixed (see `dev-notes/subgoals/subgoal-hydration-warning.md`)
 
 ---
 
-#### 10. Deprecated UUID Usage
+## Remaining Technical Debt (tracked in dev-notes/subgoals/)
 
-**Severity:** Low  
-**Location:** `src/store/app-store.ts` (line 65)
-
-**Finding:** Using UUID v4 instead of native `crypto.randomUUID()`.
-
-**Remediation:**
-```typescript
-// Replace: import { v4 as uuidv4 } from 'uuid';
-// With: crypto.randomUUID() (built into modern browsers)
-```
-
-**Priority:** P4 - Fix within 3 months
+| Item | Subgoal | Priority |
+|------|---------|----------|
+| Remove no-op `handleConfigChange`; unify `config`/`onConfigChange` APIs | `subgoal-dead-code-cleanup.md` | Low |
+| Replace O(n) `getFrameAtScroll` scan with binary search | `subgoal-get-frame-binary-search.md` | Low |
+| Document `exportScrollTriggerJS` as a template (replace frame URLs) | `subgoal-export-js-docs.md` | Low |
+| Replace `currentVideo!.` non-null assertions | `subgoal-non-null-assertions.md` | Low |
 
 ---
 
 ## Dependency Security Assessment
 
-### Confirmed Vulnerability
-
-| Package | CVE | Severity | Status |
-|---------|-----|----------|--------|
-| `prismjs` (via react-syntax-highlighter) | CVE-2024-53382 | Moderate | Update required |
-
-### Packages Requiring Attention
-
-| Package | Current | Recommended | Notes |
-|---------|---------|-------------|-------|
-| `react-syntax-highlighter` | ^15.6.1 | Latest | Contains patched prismjs |
-| `next-auth` | ^4.24.11 | v5 (beta) | v4 in maintenance mode |
-| `radix-ui` | ^1.4.3 | Remove | Redundant, individual packages used |
-
----
-
-## Remediation Plan
-
-### Phase 1: Critical Fixes (24 hours)
-
-| # | Task | Owner | Status |
-|---|------|-------|--------|
-| 1.1 | Add security headers to next.config.ts | - | Pending |
-| 1.2 | Implement CSRF protection for forms | - | Pending |
-| 1.3 | Move Formspree endpoint to env variable | - | Pending |
-
-### Phase 2: High Priority (1 week)
-
-| # | Task | Owner | Status |
-|---|------|-------|--------|
-| 2.1 | Fix environment variable validation | - | Pending |
-| 2.2 | Update react-syntax-highlighter | - | Pending |
-| 2.3 | Update next-auth to v5 (plan) | - | Pending |
-
-### Phase 3: Medium Priority (1 month)
-
-| # | Task | Owner | Status |
-|---|------|-------|--------|
-| 3.1 | Add input validation to scroll trigger | - | Pending |
-| 3.2 | Fix error boundary information disclosure | - | Pending |
-| 3.3 | Add rate limiting to API routes | - | Pending |
-| 3.4 | Encrypt localStorage data | - | Pending |
-
-### Phase 4: Long-term (3 months)
-
-| # | Task | Owner | Status |
-|---|------|-------|--------|
-| 4.1 | Add security ESLint rules | - | Pending |
-| 4.2 | Replace deprecated UUID | - | Pending |
-| 4.3 | Remove redundant radix-ui package | - | Pending |
-| 4.4 | Implement full authentication system | - | Pending |
-
----
-
-## Security Architecture Recommendations
-
-### Defense-in-Depth Layers
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        EDGE / CDN                               │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │ MISSING: CSP | X-Frame-Options | X-Content-Type-Options│   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      NEXT.JS APPLICATION                        │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │
-│  │   CSRF       │  │   Rate      │  │   Input Validation   │  │
-│  │   MISSING    │  │   LIMITING  │  │   PARTIAL            │  │
-│  └──────────────┘  └──────────────┘  └──────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     DATA LAYER                                  │
-│  ┌──────────────────┐    ┌──────────────────────────────────┐ │
-│  │  localStorage    │    │     ENVIRONMENT VARIABLES        │ │
-│  │  (Unencrypted)  │    │  (Validation gaps, hardcoded)     │ │
-│  └──────────────────┘    └──────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-```
+No known-vulnerable direct dependencies were found at time of audit. Keep dependencies current with `pnpm audit` on a regular cadence.
 
 ---
 
 ## Testing Recommendations
 
-1. **Static Analysis:** Run CodeQL or Semgrep for SAST
-2. **Dependency Scanning:** Configure npm audit or Snyk
-3. **Dynamic Testing:** Use OWASP ZAP for penetration testing
-4. **Security Headers:** Verify with securityheaders.com
-5. **CSRF Testing:** Test form submissions for CSRF vulnerabilities
+1. Run `pnpm test` (vitest) in CI on every PR.
+2. Run `pnpm audit` periodically; act on high/critical advisories.
+3. Verify security headers via `securityheaders.com` before production deploy.
+4. Test CSRF behavior: submit the feedback form from a different origin — it must be rejected with 403.
 
 ---
 
 ## Conclusion
 
-The Artisan Labs project has a modest security posture requiring immediate attention to critical vulnerabilities. The most urgent issues are the missing security headers and lack of CSRF protection on forms. Address these findings before any production deployment.
-
-**Overall Risk Level:** MODERATE to HIGH
-
----
-
-*Audit completed by PRIDES Security Team*  
-*Report version: 1.0*  
-*Next review: July 4, 2026*
+Critical CSRF and env-validation issues are fixed. CI and tests are in place. Remaining items are low-priority cleanup tracked as subgoals. The app is closer to production-ready but should not be deployed until the Critical/High gates pass and a staging smoke test is completed.

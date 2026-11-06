@@ -4,13 +4,13 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { SmoothScroll } from "@/components/smooth-scroll";
-import { validateEnv } from "@/lib/validate-env";
+import { assertEnv } from "@/lib/validate-env";
 import { Analytics } from '@vercel/analytics/next';
 import { StorageWarning } from '@/components/storage-warning';
 
-// Validate environment at build time
+// Validate environment at build time / server startup
 if (typeof window === 'undefined') {
-  validateEnv()
+  assertEnv()
 }
 
 const geistSans = Geist({
@@ -44,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" className="dark">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} antialiased bg-[#0a0a0a] text-[#f0f0f0]`}
       >

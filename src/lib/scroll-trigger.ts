@@ -505,13 +505,18 @@ export function getFrameAtScroll(
 ): number {
   if (events.length === 0) return 0
 
-  // Find the last event whose scrollPosition <= scrollPos
-  let frameIndex = 0
-  for (let i = 0; i < events.length; i++) {
-    if (events[i].scrollPosition <= scrollPos) {
-      frameIndex = events[i].frameIndex
+  // Binary search: find the rightmost event whose scrollPosition <= scrollPos.
+  // events are generated in ascending scrollPosition order.
+  let lo = 0
+  let hi = events.length - 1
+  let frameIndex = events[0].frameIndex
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1
+    if (events[mid].scrollPosition <= scrollPos) {
+      frameIndex = events[mid].frameIndex
+      lo = mid + 1
     } else {
-      break
+      hi = mid - 1
     }
   }
 
@@ -621,9 +626,14 @@ export function exportScrollTriggerJS(map: ScrollTriggerMap): string {
   }))
 
   return `/**
- * Artisan Labs — Scroll Trigger Integration
+ * Artisan Labs — Scroll Trigger Integration (STARTER TEMPLATE)
  * Generated: ${new Date().toISOString()}
  * Mode: ${map.config.mode} | Frames: ${map.eventCount} | Scroll: ${totalScroll}px
+ *
+ * NOTE: This is a starter template, not drop-in production code.
+ *   - Replace the frameImages URLs with your actual extracted frame URLs.
+ *   - Adjust the scroll container selector (.scroll-video) to match your markup.
+ *   - Wire initScrollVideo() into your page's scroll handler or framework.
  */
 
 // Scroll trigger configuration

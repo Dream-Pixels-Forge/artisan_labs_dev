@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Send,
@@ -17,9 +17,6 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-
-// Formspree endpoint from environment variable (with fallback for development)
-const FORMSPREE_ENDPOINT = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT || 'https://formspree.io/f/xaqllokg'
 
 const QUICK_PROMPTS = [
   { icon: Lightbulb, label: 'Feature idea', text: 'I wish I could...' },
@@ -44,10 +41,29 @@ export function FeedbackForm() {
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [selectedPrompt, setSelectedPrompt] = useState<number | null>(null)
+  const [csrfToken, setCsrfToken] = useState<string | null>(null)
 
   const handlePromptClick = useCallback((index: number) => {
     setSelectedPrompt(index)
     setMessage(QUICK_PROMPTS[index].text)
+  }, [])
+
+  // Fetch CSRF token on mount for double-submit cookie protection
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/csrf-token')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && data.csrfToken) {
+          setCsrfToken(data.csrfToken)
+        }
+      })
+      .catch(() => {
+        // CSRF token is optional in dev; form still submits, server enforces
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
@@ -61,11 +77,12 @@ export function FeedbackForm() {
     setFormState({ submitting: true, success: false, error: null })
 
     try {
-      const response = await fetch(FORMSPREE_ENDPOINT, {
+      const response = await fetch('/api/feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
         },
         body: JSON.stringify({
           email,
@@ -97,7 +114,7 @@ export function FeedbackForm() {
       })
       toast.error('Failed to submit feedback. Please try again.')
     }
-  }, [email, message, selectedPrompt])
+  }, [email, message, selectedPrompt, csrfToken])
 
   if (formState.success) {
     return (
