@@ -233,7 +233,7 @@ export function ScrollDrivenDemo() {
             {/* Progress bar overlay at bottom */}
             <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-white/[0.06] z-10">
               <div
-                className="h-full bg-gradient-to-r from-orange-500 via-red-400 to-orange-500 transition-[width] duration-75"
+                className="h-full bg-gradient-to-r from-orange-500 via-red-400 to-orange-500 transition-width duration-75"
                 style={{ width: `${progress * 100}%` }}
               />
             </div>
@@ -253,14 +253,14 @@ export function ScrollDrivenDemo() {
             >
               {/* Filled portion (from top) */}
               <div
-                className="absolute top-0 left-0 right-0 rounded-full bg-gradient-to-b from-orange-500 via-red-400 to-orange-500 transition-[height] duration-75"
+                className="absolute top-0 left-0 right-0 rounded-full bg-gradient-to-b from-orange-500 via-red-400 to-orange-500 transition-height duration-75"
                 style={{ height: `${progress * 100}%` }}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50 rounded-full" />
               </div>
               {/* Thumb */}
               <div
-                className="absolute left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-gradient-to-br from-white to-gray-200 shadow-lg shadow-orange-500/30 border-2 border-orange-400 transition-[bottom] duration-75 hover:scale-110 z-10"
+                className="absolute left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-gradient-to-br from-white to-gray-200 shadow-lg shadow-orange-500/30 border-2 border-orange-400 transition-bottom duration-75 hover:scale-110 z-10"
                 style={{ bottom: `calc(${progress * 100}% - 12px)` }}
               >
                 <div className="absolute inset-1 rounded-full bg-gradient-to-br from-orange-400 to-orange-600" />
