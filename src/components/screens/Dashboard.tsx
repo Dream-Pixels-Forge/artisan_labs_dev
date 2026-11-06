@@ -135,7 +135,7 @@ function CapabilityStats() {
             </div>
             <div className="space-y-0.5">
               <p className="text-lg sm:text-xl font-bold text-white/80 font-mono">{cap.value}</p>
-              <p className="text-[8px] uppercase tracking-wider text-white/25">{cap.label}</p>
+              <p className="text-label uppercase tracking-wider text-white/25">{cap.label}</p>
             </div>
           </motion.div>
         )
@@ -159,7 +159,7 @@ function HeroSceneCard({ onNavigate }: { onNavigate: (screen: 'sequencer') => vo
           alt="Scrollytelling pipeline visualization"
           className="w-full h-full object-cover opacity-30 group-hover:opacity-40 transition-opacity duration-1000"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/85 to-[#0a0a0a]/50" />
+        <div className="absolute inset-0 bg-gradient-to-t from-surface-0 via-surface-0/85 to-surface-0/50" />
       </div>
 
       <div className="relative px-6 py-10 sm:px-10 sm:py-14">
@@ -167,12 +167,12 @@ function HeroSceneCard({ onNavigate }: { onNavigate: (screen: 'sequencer') => vo
           <div className="space-y-5 flex-1">
             <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full border border-orange-500/[0.3] bg-orange-500/[0.1] backdrop-blur-sm">
               <Sparkles className="h-3.5 w-3.5 text-orange-400" />
-              <span className="text-[9px] font-mono uppercase tracking-widest text-orange-300/80">
+              <span className="text-meta font-mono uppercase tracking-widest text-orange-300/80">
                 Quick Start Guide
               </span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#f0f0f0] leading-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground leading-tight">
               Ready to create something{' '}
               <span className="bg-gradient-to-r from-orange-400 via-red-400 to-orange-500 bg-clip-text text-transparent">
                 extraordinary
@@ -211,7 +211,7 @@ function HeroSceneCard({ onNavigate }: { onNavigate: (screen: 'sequencer') => vo
                       i === 3 ? 'bg-orange-400' : 'bg-white/20'
                     }`}
                   />
-                  <span className={`text-[9px] font-mono ${i === 3 ? 'text-white/70' : 'text-white/30'}`}>
+                  <span className={`text-meta font-mono ${i === 3 ? 'text-white/70' : 'text-white/30'}`}>
                     {mode}
                   </span>
                 </div>
@@ -248,7 +248,7 @@ export default function Dashboard() {
   const formattedStorage = formatBytes(storageUsed)
 
   return (
-    <div className="relative min-h-screen bg-[#0a0a0a] text-[#f0f0f0] overflow-hidden pt-14">
+    <div className="relative min-h-screen bg-surface-0 text-foreground overflow-hidden pt-14">
       {/* ── Grain Overlay ── */}
       <div
         className="pointer-events-none fixed inset-0 z-50 opacity-[0.03]"
@@ -277,7 +277,7 @@ export default function Dashboard() {
         <div className="space-y-10">
           <motion.header className="space-y-6 text-center" variants={heroTitleVariants}>
             <motion.div
-              className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.05] px-4 py-2 text-[10px] font-medium tracking-widest text-white/50 uppercase backdrop-blur-sm"
+              className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.05] px-4 py-2 text-meta font-medium tracking-widest text-white/50 uppercase backdrop-blur-sm"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
@@ -286,7 +286,7 @@ export default function Dashboard() {
               Scrollytelling Toolkit
             </motion.div>
 
-            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-[#f0f0f0] leading-[1.05]">
+            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-[1.05]">
               ARTISAN{' '}
               <span className="bg-gradient-to-r from-orange-400 via-red-400 to-orange-500 bg-clip-text text-transparent">
                 LABS
@@ -437,7 +437,7 @@ export default function Dashboard() {
                 <div className="p-2 rounded-xl bg-white/[0.05] border border-white/[0.08]">
                   <Aperture className="h-4 w-4 text-white/40" />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#f0f0f0]">
+                <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
                   Why Scrollytelling?
                 </h2>
               </div>
@@ -478,7 +478,7 @@ export default function Dashboard() {
                     <div className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] w-fit transition-all duration-500 group-hover:bg-orange-500/[0.1] group-hover:border-orange-500/[0.2]">
                       <item.icon className="h-4 w-4 text-orange-400/70 transition-colors group-hover:text-orange-400" />
                     </div>
-                    <span className="text-[9px] font-mono text-white/20 px-2 py-0.5 rounded-full bg-white/[0.03] border border-white/[0.06]">
+                    <span className="text-meta font-mono text-white/20 px-2 py-0.5 rounded-full bg-white/[0.03] border border-white/[0.06]">
                       {item.tag}
                     </span>
                   </div>
@@ -501,11 +501,11 @@ export default function Dashboard() {
           <div className="relative px-6 py-10 sm:px-10 sm:py-12">
             <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
               <div className="space-y-5">
-                <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1.5 text-[10px] font-medium tracking-widest text-orange-300 uppercase">
+                <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1.5 text-meta font-medium tracking-widest text-orange-300 uppercase">
                   <Heart className="h-3 w-3" />
                   We listen to every message
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#f0f0f0]">
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                   Help us build{' '}
                   <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
                     what you need
@@ -532,7 +532,7 @@ export default function Dashboard() {
               </div>
 
               <div className="max-w-md lg:ml-auto">
-                <div className="rounded-2xl border border-white/[0.08] bg-[#0a0a0a]/60 backdrop-blur-xl p-5 sm:p-6">
+                <div className="rounded-2xl border border-white/[0.08] bg-surface-0/60 backdrop-blur-xl p-5 sm:p-6">
                   <FeedbackForm />
                 </div>
               </div>
@@ -550,7 +550,7 @@ export default function Dashboard() {
             <div className="w-2 h-2 rounded-full bg-orange-500/40" />
             <div className="w-8 h-[1px] bg-gradient-to-l from-transparent to-orange-500/30" />
           </div>
-          <p className="text-[10px] text-white/20 font-mono tracking-[0.25em] uppercase">
+          <p className="text-meta text-white/20 font-mono tracking-[0.25em] uppercase">
             Artisan Labs &middot; Built for Creators &middot; v1.0
           </p>
         </motion.footer>

@@ -99,7 +99,7 @@ export function AnimatedMetricCard({
             <Icon className={`h-4 w-4 ${accent ?? 'text-white/50'}`} />
           </div>
           {sparkData && (
-            <div className="flex items-center gap-1 text-[9px] font-mono text-emerald-400/60">
+            <div className="flex items-center gap-1 text-label font-mono text-emerald-400/60">
               <TrendingUp className="h-3 w-3" />
               <span>+{(Math.random() * 20 + 10).toFixed(0)}%</span>
             </div>
@@ -107,7 +107,7 @@ export function AnimatedMetricCard({
         </div>
 
         <div className="space-y-1.5">
-          <p className="text-[9px] font-medium uppercase tracking-widest text-white/35">
+          <p className="text-label font-medium uppercase tracking-widest text-white/35">
             {label}
           </p>
           <motion.p
@@ -118,7 +118,7 @@ export function AnimatedMetricCard({
           >
             {value}
           </motion.p>
-          {subtitle && <p className="text-[10px] text-white/30">{subtitle}</p>}
+          {subtitle && <p className="text-label text-white/30">{subtitle}</p>}
         </div>
       </div>
     </motion.div>

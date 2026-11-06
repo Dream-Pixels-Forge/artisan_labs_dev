@@ -74,11 +74,11 @@ export function ModeSpecificConfig({
                 disabled={disabled}
                 className="py-1"
               />
-              <div className="flex justify-between text-[10px] text-white/20">
+              <div className="flex justify-between text-label text-white/20">
                 <span>20px (rapid)</span>
                 <span>500px (slow)</span>
               </div>
-              <p className="text-[11px] text-white/20">
+              <p className="text-label text-white/20">
                 Each frame holds for {config.stepHoldDuration}px of scroll before advancing
               </p>
             </div>

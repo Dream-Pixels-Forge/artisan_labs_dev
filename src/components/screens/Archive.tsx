@@ -163,7 +163,7 @@ function SequenceCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
         {/* Frame count badge */}
         <div className="absolute bottom-2 right-2">
-          <Badge className="bg-black/60 text-white/80 border-white/10 text-[10px] backdrop-blur-sm">
+          <Badge className="bg-black/60 text-white/80 border-white/10 text-label backdrop-blur-sm">
             {sequence.frameCount} frames
           </Badge>
         </div>
@@ -181,7 +181,7 @@ function SequenceCard({
                 onChange={(e) => setEditValue(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onBlur={handleSaveEdit}
-                className="h-7 text-sm bg-white/[0.06] border-white/[0.1] text-[#f0f0f0]"
+                className="h-7 text-sm bg-white/[0.06] border-white/[0.1] text-foreground"
                 maxLength={64}
               />
               <Button
@@ -206,7 +206,7 @@ function SequenceCard({
               onClick={handleStartEdit}
               className="flex items-center gap-2 text-left group/name min-w-0 flex-1"
             >
-              <h3 className="truncate text-sm font-semibold text-[#f0f0f0] tracking-tight">
+              <h3 className="truncate text-sm font-semibold text-foreground tracking-tight">
                 {sequence.name}
               </h3>
               <Pencil className="h-3 w-3 shrink-0 text-white/20 transition-colors group-hover/name:text-white/50" />
@@ -218,22 +218,22 @@ function SequenceCard({
         <div className="flex flex-wrap items-center gap-2">
           <Badge
             variant="outline"
-            className={`text-[10px] px-1.5 py-0 ${formatBadge.className}`}
+            className={`text-label px-1.5 py-0 ${formatBadge.className}`}
           >
             {formatBadge.label}
           </Badge>
-          <div className="flex items-center gap-1.5 text-[11px] text-white/30">
+          <div className="flex items-center gap-1.5 text-label text-white/30">
             <Layers className="h-3 w-3" />
             <span>{sequence.width}×{sequence.height}</span>
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-white/30">
+          <div className="flex items-center gap-1.5 text-label text-white/30">
             <HardDrive className="h-3 w-3" />
             <span>{formatBytes(sequence.fileSize)}</span>
           </div>
         </div>
 
         {/* Timestamp */}
-        <div className="flex items-center gap-1.5 text-[11px] text-white/20">
+        <div className="flex items-center gap-1.5 text-label text-white/20">
           <Clock className="h-3 w-3" />
           <span>{timeAgo(sequence.timestamp)}</span>
         </div>
@@ -284,7 +284,7 @@ function DeleteSequenceButton({ onDelete }: { onDelete: () => void }) {
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="bg-[#141414] border-white/[0.08] text-[#f0f0f0]">
+      <AlertDialogContent className="bg-surface-0 border-white/[0.08] text-foreground">
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Sequence</AlertDialogTitle>
           <AlertDialogDescription className="text-white/40">
@@ -322,7 +322,7 @@ function ClearAllButton({ count, onClear }: { count: number; onClear: () => void
           Clear All
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="bg-[#141414] border-white/[0.08] text-[#f0f0f0]">
+      <AlertDialogContent className="bg-surface-0 border-white/[0.08] text-foreground">
         <AlertDialogHeader>
           <AlertDialogTitle>Clear All Sequences</AlertDialogTitle>
           <AlertDialogDescription className="text-white/40">
@@ -407,7 +407,7 @@ export default function Archive() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-[#f0f0f0] pt-14 pb-24 md:pb-8">
+    <div className="min-h-screen bg-surface-0 text-foreground pt-14 pb-24 md:pb-8">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-8">
         <AnimatePresence mode="wait">
           {sequences.length === 0 ? (

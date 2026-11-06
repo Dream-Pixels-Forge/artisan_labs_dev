@@ -87,7 +87,7 @@ function MobileBottomNav() {
         />
 
         {/* Inner pill content */}
-        <div className="relative bg-[#0a0a0a]/95 backdrop-blur-2xl rounded-full px-2 py-1.5 flex items-center gap-1">
+        <div className="relative bg-surface-0/95 backdrop-blur-2xl rounded-full px-2 py-1.5 flex items-center gap-1">
           {mobileNavItems.map(({ icon: Icon, label, screen }) => {
             const isActive = activeScreen === screen
 
@@ -122,7 +122,7 @@ function MobileBottomNav() {
                   />
                 )}
                 <Icon className="h-4 w-4 relative z-10" />
-                <span className="relative z-10 text-[10px] font-mono tracking-wide whitespace-nowrap">
+                <span className="relative z-10 text-label font-mono tracking-wide whitespace-nowrap">
                   {label}
                 </span>
               </button>

@@ -64,7 +64,7 @@ export function FramePreviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0a0a0a] border-white/[0.08] text-[#f0f0f0] max-w-5xl w-[calc(100%-2rem)] h-[85vh] flex flex-col p-0 gap-0 overflow-hidden">
+      <DialogContent className="bg-surface-0 border-white/[0.08] text-foreground max-w-5xl w-[calc(100%-2rem)] h-[85vh] flex flex-col p-0 gap-0 overflow-hidden">
         {/* ── Header ── */}
         <DialogHeader className="px-6 pt-5 pb-3 shrink-0">
           <div className="flex items-center justify-between">
@@ -77,7 +77,7 @@ export function FramePreviewDialog({
               </DialogDescription>
             </div>
             {sequence.frames.length > MAX_VISIBLE && (
-              <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-400 border-amber-500/20">
+              <Badge variant="outline" className="text-label bg-amber-500/10 text-amber-400 border-amber-500/20">
                 Showing first {MAX_VISIBLE} of {sequence.frames.length} frames
               </Badge>
             )}

@@ -42,6 +42,30 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* ─── Design tokens: type scale ─── */
+  --font-size-text-meta: 0.625rem;      /* 10px — badges only */
+  --line-height-text-meta: 1rem;
+  --font-size-text-label: 0.6875rem;    /* 11px — labels, captions */
+  --line-height-text-label: 1rem;
+  --font-size-text-sm: 0.8125rem;       /* 13px — body, controls */
+  --line-height-text-sm: 1.25rem;
+  --font-size-text-base: 0.9375rem;     /* 15px — reading text */
+  --line-height-text-base: 1.5rem;
+  --font-size-text-lg: 1.125rem;        /* 18px — section titles */
+  --line-height-text-lg: 1.625rem;
+  --font-size-text-xl: 1.5rem;          /* 24px — page titles */
+  --line-height-text-xl: 2rem;
+
+  /* ─── Design tokens: surfaces (dark-first ramp) ─── */
+  --color-surface-0: #0a0a0a;   /* app background */
+  --color-surface-1: #121212;   /* panels, sidebars */
+  --color-surface-2: #1a1a1a;   /* cards, inputs */
+  --color-surface-3: #232323;   /* popovers, modals, hover */
+
+  /* ─── Design tokens: radii ─── */
+  --radius-control: 0.5rem;   /* buttons, inputs, chips */
+  --radius-card: 0.75rem;     /* cards, panels, modals */
 }
 
 :root {

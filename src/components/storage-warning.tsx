@@ -91,6 +91,7 @@ export function StorageWarning() {
             </div>
             <button
               onClick={handleDismiss}
+              aria-label="Dismiss warning"
               className="text-white/25 hover:text-white/50 transition-colors"
             >
               <X className="h-4 w-4" />

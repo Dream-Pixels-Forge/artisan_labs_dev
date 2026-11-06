@@ -282,8 +282,8 @@ export function ModeEditor({
               {config.scenes.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-6 text-center">
                   <Box className="h-6 w-6 text-white/10 mb-2" />
-                  <p className="text-[11px] text-white/25">No scenes defined</p>
-                  <p className="text-[10px] text-white/15 mt-0.5">
+                  <p className="text-label text-white/25">No scenes defined</p>
+                  <p className="text-label text-white/15 mt-0.5">
                     Click &quot;Auto-detect&quot; or &quot;Add&quot; to begin
                   </p>
                 </div>
@@ -304,7 +304,7 @@ export function ModeEditor({
                         value={scene.label}
                         onChange={(e) => handleSceneLabelChange(index, e.target.value)}
                         disabled={disabled}
-                        className="h-6 w-28 text-[11px] bg-transparent border-white/[0.08] text-white/70 focus:border-violet-500/40 focus:ring-violet-500/20 px-1.5"
+                        className="h-6 w-28 text-label bg-transparent border-white/[0.08] text-white/70 focus:border-violet-500/40 focus:ring-violet-500/20 px-1.5"
                       />
                     </div>
                     <Button
@@ -320,7 +320,7 @@ export function ModeEditor({
 
                   <div className="grid grid-cols-3 gap-2">
                     <div className="space-y-1">
-                      <span className="text-[9px] uppercase tracking-wider text-white/25">Start</span>
+                      <span className="text-label uppercase tracking-wider text-white/25">Start</span>
                       <Input
                         type="number"
                         value={scene.startFrame}
@@ -328,11 +328,11 @@ export function ModeEditor({
                         disabled={disabled}
                         min={0}
                         max={frameCount - 1}
-                        className="h-6 text-[11px] font-mono bg-transparent border-white/[0.08] text-violet-400 focus:border-violet-500/40 px-1.5"
+                        className="h-6 text-label font-mono bg-transparent border-white/[0.08] text-violet-400 focus:border-violet-500/40 px-1.5"
                       />
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[9px] uppercase tracking-wider text-white/25">End</span>
+                      <span className="text-label uppercase tracking-wider text-white/25">End</span>
                       <Input
                         type="number"
                         value={scene.endFrame}
@@ -340,11 +340,11 @@ export function ModeEditor({
                         disabled={disabled}
                         min={0}
                         max={frameCount - 1}
-                        className="h-6 text-[11px] font-mono bg-transparent border-white/[0.08] text-violet-400 focus:border-violet-500/40 px-1.5"
+                        className="h-6 text-label font-mono bg-transparent border-white/[0.08] text-violet-400 focus:border-violet-500/40 px-1.5"
                       />
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[9px] uppercase tracking-wider text-white/25">Weight</span>
+                      <span className="text-label uppercase tracking-wider text-white/25">Weight</span>
                       <div className="flex items-center gap-1">
                         <Slider
                           value={[scene.weight]}
@@ -355,7 +355,7 @@ export function ModeEditor({
                           disabled={disabled}
                           className="flex-1 py-0.5"
                         />
-                        <span className="text-[9px] font-mono text-violet-400 w-5 text-right">
+                        <span className="text-label font-mono text-violet-400 w-5 text-right">
                           {scene.weight.toFixed(1)}
                         </span>
                       </div>
@@ -422,7 +422,7 @@ export function ModeEditor({
                   ))}
                 </div>
               </div>
-              <div className="flex justify-between text-[9px] text-white/25 mt-0.5">
+              <div className="flex justify-between text-label text-white/25 mt-0.5">
                 <span>0%</span>
                 <span>50%</span>
                 <span>100%</span>
@@ -433,8 +433,8 @@ export function ModeEditor({
             <div className="space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
               {config.manualRanges.length === 0 ? (
                 <div className="text-center py-6 text-white/30">
-                  <p className="text-[11px] mb-1">No ranges defined</p>
-                  <p className="text-[10px] text-white/20">
+                  <p className="text-label mb-1">No ranges defined</p>
+                  <p className="text-label text-white/20">
                     Click &quot;Add Range&quot; to map frames to scroll positions
                   </p>
                 </div>
@@ -454,7 +454,7 @@ export function ModeEditor({
                         onChange={(e) => handleManualRangeLabelChange(idx, e.target.value)}
                         placeholder="Range label..."
                         disabled={disabled}
-                        className="h-6 text-[11px] bg-transparent border-white/[0.08] text-white/80 placeholder:text-white/20"
+                        className="h-6 text-label bg-transparent border-white/[0.08] text-white/80 placeholder:text-white/20"
                       />
                       <Button
                         variant="ghost"
@@ -469,7 +469,7 @@ export function ModeEditor({
 
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <span className="text-[9px] uppercase tracking-wider text-white/30">Start Frame</span>
+                        <span className="text-label uppercase tracking-wider text-white/30">Start Frame</span>
                         <div className="flex items-center gap-1">
                           <Slider
                             value={[range.startFrame]}
@@ -480,13 +480,13 @@ export function ModeEditor({
                             disabled={disabled}
                             className="flex-1"
                           />
-                          <span className="text-[10px] font-mono text-cyan-400 w-6 text-right">
+                          <span className="text-label font-mono text-cyan-400 w-6 text-right">
                             {range.startFrame}
                           </span>
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[9px] uppercase tracking-wider text-white/30">End Frame</span>
+                        <span className="text-label uppercase tracking-wider text-white/30">End Frame</span>
                         <div className="flex items-center gap-1">
                           <Slider
                             value={[range.endFrame]}
@@ -497,7 +497,7 @@ export function ModeEditor({
                             disabled={disabled}
                             className="flex-1"
                           />
-                          <span className="text-[10px] font-mono text-cyan-400 w-6 text-right">
+                          <span className="text-label font-mono text-cyan-400 w-6 text-right">
                             {range.endFrame}
                           </span>
                         </div>
@@ -506,7 +506,7 @@ export function ModeEditor({
 
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <span className="text-[9px] uppercase tracking-wider text-white/30">Scroll Start</span>
+                        <span className="text-label uppercase tracking-wider text-white/30">Scroll Start</span>
                         <div className="flex items-center gap-1">
                           <Slider
                             value={[range.scrollStart * 100]}
@@ -517,13 +517,13 @@ export function ModeEditor({
                             disabled={disabled}
                             className="flex-1"
                           />
-                          <span className="text-[10px] font-mono text-emerald-400 w-8 text-right">
+                          <span className="text-label font-mono text-emerald-400 w-8 text-right">
                             {Math.round(range.scrollStart * 100)}%
                           </span>
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-[9px] uppercase tracking-wider text-white/30">Scroll End</span>
+                        <span className="text-label uppercase tracking-wider text-white/30">Scroll End</span>
                         <div className="flex items-center gap-1">
                           <Slider
                             value={[range.scrollEnd * 100]}
@@ -534,7 +534,7 @@ export function ModeEditor({
                             disabled={disabled}
                             className="flex-1"
                           />
-                          <span className="text-[10px] font-mono text-emerald-400 w-8 text-right">
+                          <span className="text-label font-mono text-emerald-400 w-8 text-right">
                             {Math.round(range.scrollEnd * 100)}%
                           </span>
                         </div>

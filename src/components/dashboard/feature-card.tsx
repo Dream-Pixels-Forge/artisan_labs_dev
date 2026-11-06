@@ -58,14 +58,14 @@ export function FeatureCard({
           >
             <Icon className={`h-5 w-5 ${accentColor}`} />
           </motion.div>
-          <div className="flex items-center gap-1.5 text-[9px] font-mono text-white/15 opacity-0 group-hover:opacity-100 transition-all duration-500">
+          <div className="flex items-center gap-1.5 text-label font-mono text-white/15 opacity-0 group-hover:opacity-100 transition-all duration-500">
             <span>0{index + 1}</span>
             <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
           </div>
         </div>
 
         <div className="space-y-2.5">
-          <h3 className="text-base font-semibold text-[#f0f0f0] tracking-tight group-hover:text-white transition-colors">
+          <h3 className="text-base font-semibold text-foreground tracking-tight group-hover:text-white transition-colors">
             {title}
           </h3>
           <p className="text-sm leading-relaxed text-white/40 group-hover:text-white/55 transition-colors duration-500">
@@ -78,7 +78,7 @@ export function FeatureCard({
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="px-2.5 py-1 text-[9px] font-mono tracking-wider uppercase rounded-lg bg-white/[0.05] text-white/30 border border-white/[0.06] transition-all duration-300 group-hover:bg-white/[0.08] group-hover:text-white/45 group-hover:border-white/[0.12]"
+                className="px-2.5 py-1 text-label font-mono tracking-wider uppercase rounded-lg bg-white/[0.05] text-white/30 border border-white/[0.06] transition-all duration-300 group-hover:bg-white/[0.08] group-hover:text-white/45 group-hover:border-white/[0.12]"
               >
                 {tag}
               </span>

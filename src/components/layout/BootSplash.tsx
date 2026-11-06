@@ -29,7 +29,7 @@ export function BootSplash() {
     <AnimatePresence>
       {phase !== 'done' && (
         <motion.div
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0a0a0a]"
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-surface-0"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.4, ease: 'easeInOut' }}
@@ -58,7 +58,7 @@ export function BootSplash() {
           <div className="relative flex flex-col items-center gap-8">
             {/* ARTISAN LABS title */}
             <motion.h1
-              className="font-display text-4xl md:text-5xl tracking-tight text-[#f0f0f0] select-none"
+              className="font-display text-4xl md:text-5xl tracking-tight text-foreground select-none"
               initial={{ opacity: 0, filter: 'blur(8px)' }}
               animate={{ opacity: 1, filter: 'blur(0px)' }}
               transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}

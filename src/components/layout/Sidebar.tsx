@@ -119,7 +119,7 @@ export function Sidebar() {
         {/* Inner content */}
         <motion.div
           variants={containerVariants}
-          className="relative bg-[#0a0a0a]/97 backdrop-blur-2xl rounded-2xl px-2 py-8 flex flex-col gap-5 items-center"
+          className="relative bg-surface-0/97 backdrop-blur-2xl rounded-2xl px-2 py-8 flex flex-col gap-5 items-center"
         >
           {/* Top accent line */}
           <div className="w-8 h-[1px] bg-gradient-to-r from-transparent via-orange-500/40 to-transparent" />
@@ -208,7 +208,7 @@ export function Sidebar() {
                 <TooltipContent
                   side="right"
                   sideOffset={16}
-                  className="bg-[#0f0f0f]/98 border border-orange-500/20 backdrop-blur-xl p-0 overflow-hidden shadow-2xl shadow-orange-900/10"
+                  className="bg-surface-0/98 border border-orange-500/20 backdrop-blur-xl p-0 overflow-hidden shadow-2xl shadow-orange-900/10"
                 >
                   <motion.div
                     initial={{ opacity: 0, x: 12, scale: 0.92 }}
@@ -226,11 +226,11 @@ export function Sidebar() {
                           <Sparkles className="h-3.5 w-3.5 text-orange-400" />
                         </motion.div>
                       )}
-                      <span className="text-white text-[11px] font-semibold tracking-wide">
+                      <span className="text-white text-label font-semibold tracking-wide">
                         {label}
                       </span>
                     </div>
-                    <p className="text-white/30 text-[10px] mt-1 font-medium tracking-wide">
+                    <p className="text-white/30 text-label mt-1 font-medium tracking-wide">
                       {description}
                     </p>
                     {/* Bottom accent */}

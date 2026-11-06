@@ -12,7 +12,7 @@ export function OpenSourceBadge() {
       variants={itemVariants}
       className="flex justify-center"
     >
-      <div className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[10px] font-medium tracking-wide text-white/40 backdrop-blur-sm">
+      <div className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-label font-medium tracking-wide text-white/40 backdrop-blur-sm">
         <Code2 className="h-3 w-3 text-orange-400/60" />
         Open Source &middot; Apache 2.0
       </div>
@@ -86,7 +86,7 @@ export function GettingStartedGuide({ onNavigate }: { onNavigate: (screen: 'sequ
             <div className={`absolute -top-20 -right-20 w-40 h-40 rounded-full bg-gradient-to-br ${step.glow} to-transparent blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
 
             {/* Step number */}
-            <div className="absolute top-4 right-4 text-[48px] font-bold text-white/[0.03] leading-none select-none">
+            <div className="absolute top-4 right-4 text-5xl font-bold text-white/[0.03] leading-none select-none">
               {String(i + 1).padStart(2, '0')}
             </div>
 
@@ -103,7 +103,7 @@ export function GettingStartedGuide({ onNavigate }: { onNavigate: (screen: 'sequ
                 <div className={`inline-flex p-3 rounded-xl ${step.bg} border ${step.border} transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg`}>
                   <step.icon className={`h-5 w-5 ${step.color}`} />
                 </div>
-                <span className="text-[9px] font-mono text-white/20 uppercase tracking-wider">
+                <span className="text-label font-mono text-white/20 uppercase tracking-wider">
                   Step {i + 1}
                 </span>
               </div>
@@ -119,7 +119,7 @@ export function GettingStartedGuide({ onNavigate }: { onNavigate: (screen: 'sequ
               </div>
 
               {/* CTA row */}
-              <div className="flex items-center gap-1.5 text-[10px] text-white/20 group-hover:text-orange-400/70 transition-colors pt-1">
+              <div className="flex items-center gap-1.5 text-label text-white/20 group-hover:text-orange-400/70 transition-colors pt-1">
                 <span>Get started</span>
                 <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
               </div>
