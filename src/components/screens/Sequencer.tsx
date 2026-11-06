@@ -2,22 +2,8 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Film,
-  Play,
-  Clock,
-  Monitor,
-  HardDrive,
-  RefreshCw,
-  Loader2,
-  Layers,
-  X,
-  SlidersHorizontal,
-} from 'lucide-react'
+import { Film, SlidersHorizontal } from 'lucide-react'
 import { toast } from 'sonner'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useAppStore, createSequenceId } from '@/store/app-store'
 import type { ExportFormat, ExtractionParams, VideoInfo } from '@/types'
@@ -29,12 +15,14 @@ import {
 import {
   formatBytes,
   formatDuration,
-  formatElapsed,
   containerVariants,
   itemVariants,
 } from '@/lib/shared-utils'
 import { VideoUploadZone, MAX_FILE_SIZE } from '@/components/sequencer/video-upload-zone'
 import { ExtractionSettings } from '@/components/sequencer/extraction-settings'
+import { VideoInfoBar } from '@/components/sequencer/video-info-bar'
+import { VideoPreviewTab } from '@/components/sequencer/video-preview-tab'
+import { ExtractBar } from '@/components/sequencer/extract-bar'
 
 // ─── Main Sequencer ───────────────────────────────────────────────────────
 
@@ -53,7 +41,7 @@ export default function Sequencer() {
   } = useAppStore()
 
   // Active tab
-  const [activeTab, setActiveTab] = useState('video')
+  const [activeTab, setActiveTab] = useState<'video' | 'settings'>('video')
 
   // Extraction parameters state
   const [samplingRate, setSamplingRate] = useState(4)
@@ -151,15 +139,6 @@ export default function Sequencer() {
     },
     [setCurrentVideo]
   )
-
-  // ── Change video (cleanup old URL) ──────────────────────────────────────
-
-  const handleChangeVideo = useCallback(() => {
-    if (currentVideo) {
-      URL.revokeObjectURL(currentVideo.url)
-      setCurrentVideo(null)
-    }
-  }, [currentVideo, setCurrentVideo])
 
   // ── Build extraction params ─────────────────────────────────────────────
 
@@ -276,7 +255,7 @@ export default function Sequencer() {
       if (err instanceof DOMException && err.name === 'AbortError') {
         toast.info('Extraction cancelled')
       } else if (
-        err instanceof DOMException && 
+        err instanceof DOMException &&
         err.name === 'QuotaExceededError'
       ) {
         // Handle localStorage quota exceeded
@@ -285,9 +264,7 @@ export default function Sequencer() {
           duration: 8000,
         })
       } else {
-        toast.error(
-          err instanceof Error ? err.message : 'An unexpected error occurred'
-        )
+        toast.error(err instanceof Error ? err.message : 'An unexpected error occurred')
       }
     } finally {
       setIsExtracting(false)
@@ -379,45 +356,12 @@ export default function Sequencer() {
               exit={{ opacity: 0, scale: 0.97 }}
               transition={{ duration: 0.3 }}
             >
-              {/* ── Video info bar (always visible above tabs) ── */}
-              <motion.div variants={itemVariants} className="mb-4">
-                <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-                  <Badge variant="outline" className="border-white/10 bg-white/[0.04] text-white/60 gap-1.5">
-                    <Film className="h-3 w-3" />
-                    <span className="max-w-[180px] truncate">{currentVideo.name}</span>
-                  </Badge>
-                  <Badge variant="outline" className="border-white/10 bg-white/[0.04] text-white/60 gap-1.5">
-                    <Clock className="h-3 w-3" />
-                    {formatDuration(currentVideo.duration)}
-                  </Badge>
-                  <Badge variant="outline" className="border-white/10 bg-white/[0.04] text-white/60 gap-1.5">
-                    <Monitor className="h-3 w-3" />
-                    {currentVideo.width}&times;{currentVideo.height}
-                  </Badge>
-                  <Badge variant="outline" className="border-white/10 bg-white/[0.04] text-white/60 gap-1.5">
-                    <HardDrive className="h-3 w-3" />
-                    {formatBytes(currentVideo.size)}
-                  </Badge>
-
-                  <div className="ml-auto">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleChangeVideo}
-                      disabled={isExtracting}
-                      className="h-7 text-xs text-white/40 hover:text-white/70 hover:bg-white/[0.06] gap-1.5"
-                    >
-                      <RefreshCw className="h-3 w-3" />
-                      Change Video
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
+              <VideoInfoBar currentVideo={currentVideo} />
 
               {/* ── Tabbed panels ── */}
               <Tabs
                 value={activeTab}
-                onValueChange={setActiveTab}
+                onValueChange={(value) => setActiveTab(value as 'video' | 'settings')}
                 className="w-full"
               >
                 {/* Tab triggers */}
@@ -438,65 +382,22 @@ export default function Sequencer() {
                     <SlidersHorizontal className="h-3.5 w-3.5" />
                     Settings
                   </TabsTrigger>
-
                 </TabsList>
 
                 {/* ── Tab: Video Preview ── */}
                 <TabsContent value="video" className="mt-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.25 }}
-                  >
-                    <div className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-black">
-                      <video
-                        src={currentVideo.url}
-                        controls
-                        className="w-full max-h-[60vh] object-contain"
-                        playsInline
-                        preload="metadata"
-                      />
-                    </div>
-
-                    {/* Quick estimations below video */}
-                    <div className="mt-4 grid grid-cols-3 gap-3">
-                      <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-4 py-3 space-y-1">
-                        <div className="flex items-center gap-1.5 text-white/30">
-                          <Layers className="h-3 w-3" />
-                          <span className="text-label uppercase tracking-wider">
-                            Est. Frames
-                          </span>
-                        </div>
-                        <p className="text-lg font-mono font-bold text-foreground">
-                          {estimatedFrames.toLocaleString()}
-                        </p>
-                      </div>
-                      <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-4 py-3 space-y-1">
-                        <div className="flex items-center gap-1.5 text-white/30">
-                          <HardDrive className="h-3 w-3" />
-                          <span className="text-label uppercase tracking-wider">
-                            Est. Size
-                          </span>
-                        </div>
-                        <p className="text-lg font-mono font-bold text-foreground">
-                          {formatBytes(estimatedSize)}
-                        </p>
-                      </div>
-                      <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-4 py-3 space-y-1">
-                        <div className="flex items-center gap-1.5 text-white/30">
-                          <Clock className="h-3 w-3" />
-                          <span className="text-label uppercase tracking-wider">
-                            Est. Time
-                          </span>
-                        </div>
-                        <p className="text-lg font-mono font-bold text-foreground">
-                          {estimatedTime >= 60000
-                            ? `${Math.ceil(estimatedTime / 60000)}m ${Math.round((estimatedTime % 60000) / 1000)}s`
-                            : `${Math.ceil(estimatedTime / 1000)}s`}
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
+                  <VideoPreviewTab
+                    currentVideo={{
+                      duration: currentVideo.duration,
+                      size: currentVideo.size,
+                      width: currentVideo.width,
+                      height: currentVideo.height,
+                      url: currentVideo.url,
+                    }}
+                    estimatedFrames={estimatedFrames}
+                    estimatedSize={estimatedSize}
+                    estimatedTime={estimatedTime}
+                  />
                 </TabsContent>
 
                 {/* ── Tab: Extraction Settings ── */}
@@ -509,51 +410,18 @@ export default function Sequencer() {
                     videoHeight={currentVideo.height}
                   />
                 </TabsContent>
-
               </Tabs>
 
               {/* ════════════════════ Sticky Extract Bar ════════════════════ */}
-              <div className="mt-4 sticky bottom-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pb-6 pt-3 bg-gradient-to-t from-surface-0 via-surface-0 to-transparent">
-                {!isExtracting ? (
-                  <Button
-                    onClick={handleExtract}
-                    className="w-full h-12 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm tracking-wider transition-all duration-200 hover:shadow-[0_0_24px_rgba(249,115,22,0.3)] active:scale-[0.98]"
-                  >
-                    <Play className="h-4 w-4 mr-2" />
-                    EXTRACT SEQUENCE
-                  </Button>
-                ) : (
-                  <div className="rounded-xl border border-orange-500/20 bg-orange-500/[0.04] px-5 py-4 space-y-3">
-                    <Progress
-                      value={progressPercent}
-                      className="h-2 bg-white/[0.06] [&>div]:bg-gradient-to-r [&>div]:from-orange-500 [&>div]:to-orange-400"
-                    />
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Loader2 className="h-4 w-4 text-orange-400 animate-spin" />
-                        <p className="text-sm text-white/70">
-                          Frame{' '}
-                          <span className="font-mono text-orange-400">{progressCount}</span>
-                          {' '}of{' '}
-                          <span className="font-mono text-orange-400">{progressTotal}</span>
-                          <span className="text-white/30 ml-2">
-                            {progressPercent}% &middot; {formatElapsed(elapsedMs)}
-                          </span>
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleCancel}
-                        className="h-7 text-xs text-white/40 hover:text-red-400 hover:bg-red-500/10 gap-1.5"
-                      >
-                        <X className="h-3 w-3" />
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <ExtractBar
+                isExtracting={isExtracting}
+                progressPercent={progressPercent}
+                progressCount={progressCount}
+                progressTotal={progressTotal}
+                elapsedMs={elapsedMs}
+                onExtract={handleExtract}
+                onCancel={handleCancel}
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -561,3 +429,4 @@ export default function Sequencer() {
     </div>
   )
 }
+
