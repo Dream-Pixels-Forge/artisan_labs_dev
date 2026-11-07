@@ -1,23 +1,15 @@
 'use client'
 
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
-import { motion, AnimatePresence, type Variants } from 'framer-motion'
-import {
-  X,
-  ChevronUp,
-  Maximize2,
-  Minimize2,
-  Eye,
-  Map,
-} from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { getFrameAtScroll, SCROLL_MODE_INFO } from '@/lib/scroll-trigger'
+import { AnimatePresence } from 'framer-motion'
 import type {
   ScrollTriggerMap,
   ScrollTriggerEvent,
   FrameData,
 } from '@/types'
+import type { ScrollTriggerConfig } from '@/types'
+
+import { getFrameAtScroll } from '@/lib/scroll-trigger'
 
 import { FrameDisplayArea } from './preview/frame-display'
 import { ScrollSimulatorRail } from './preview/scroll-rail'
@@ -25,7 +17,8 @@ import { TriggerMapVisualization } from './preview/trigger-map'
 import { FilmstripSection } from './preview/filmstrip'
 import { InfoPanel } from './preview/info-panel'
 import { ModeEditor } from './preview/mode-editor'
-import type { ScrollTriggerConfig } from '@/types'
+import { ScrollPreviewFullscreen } from './preview/ScrollPreviewFullscreen'
+import { ScrollPreviewPanel } from './preview/ScrollPreviewPanel'
 
 // ─── Props ──────────────────────────────────────────────────────────────────
 
@@ -38,22 +31,6 @@ interface ScrollPreviewProps {
   frameTimestamps?: number[]
   onConfigChange?: (updates: Partial<ScrollTriggerConfig>) => void
   setConfig?: React.Dispatch<React.SetStateAction<ScrollTriggerConfig>>
-}
-
-// ─── Animation Variants ─────────────────────────────────────────────────────
-
-const panelVariants: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
-  },
-  exit: {
-    opacity: 0,
-    y: 16,
-    transition: { duration: 0.25 },
-  },
 }
 
 // ─── Main Component ─────────────────────────────────────────────────────────
@@ -114,7 +91,6 @@ export default function ScrollPreview({
   // ── Frames for filmstrip (max 30) ──────────────────────────────────────
   const filmstripFrames = useMemo(() => {
     if (frames.length <= 30) return frames
-    // Evenly sample 30 frames
     const step = (frames.length - 1) / 29
     const sampled: FrameData[] = []
     for (let i = 0; i < 30; i++) {
@@ -256,50 +232,22 @@ export default function ScrollPreview({
     el.scrollBy({ left: direction === 'left' ? -200 : 200, behavior: 'smooth' })
   }, [])
 
-  // ── Keyboard support ───────────────────────────────────────────────────
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isFullscreenRef.current) return
-      if (e.key === 'Escape') {
-        setIsFullscreen(false)
-        return
-      }
-      if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-        e.preventDefault()
-        handleStepUp()
-      }
-      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-        e.preventDefault()
-        handleStepDown()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleStepUp, handleStepDown])
-
-  // ─── Render ───────────────────────────────────────────────────────────────
+  // ── Render ───────────────────────────────────────────────────────────────
 
   // Null state
   if (!map) {
     return (
-      <motion.div
-        variants={panelVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-8 text-center"
-      >
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-8 text-center">
         <div className="flex flex-col items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/[0.04]">
-            <Map className="h-6 w-6 text-white/15" />
+            <div className="h-6 w-6 text-white/15" />
           </div>
           <p className="text-sm text-white/30">No trigger map configured</p>
           <p className="text-xs text-white/15">
             Set up a scroll trigger configuration to preview the frame sequence
           </p>
         </div>
-      </motion.div>
+      </div>
     )
   }
 
@@ -307,196 +255,51 @@ export default function ScrollPreview({
   const hasFrames = Boolean(frames.length > 0 && frames[0]?.dataUrl)
 
   return (
-    <AnimatePresence mode="wait">
+    <>
       {isFullscreen ? (
-        <motion.div
-          key="fullscreen"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex flex-col bg-surface-0"
-        >
-          {/* Fullscreen top bar */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] shrink-0">
-            <div className="flex items-center gap-2">
-              <Eye className="h-4 w-4 text-orange-400" />
-              <span className="text-xs font-medium uppercase tracking-widest text-white/40">
-                Scroll Preview
-              </span>
-              <Badge variant="outline" className="border-white/[0.08] bg-white/[0.03] text-white/30">
-                {map.config.mode}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-white/20 font-mono">
-                Frame {currentFrameIndex + 1} / {map.eventCount}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsFullscreen(false)}
-                className="h-7 w-7 p-0 text-white/30 hover:text-white/60"
-              >
-                <Minimize2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Fullscreen content */}
-          <div className="flex-1 flex min-h-0 relative">
-            <FrameDisplayArea
-              currentFrameIndex={currentFrameIndex}
-              frames={frames}
-              hasFrames={hasFrames}
-              scrollPosition={scrollPosition}
-              progress={progress}
-              map={map}
-              isFullscreen
-            />
-            <ScrollSimulatorRail
-              railRef={railRef}
-              map={map}
-              progress={progress}
-              isDragging={isDragging}
-              handleRailMouseDown={handleRailMouseDown}
-              handleRailTouchStart={handleRailTouchStart}
-              onStepUp={handleStepUp}
-              onStepDown={handleStepDown}
-            />
-          </div>
-
-          {/* Fullscreen bottom: filmstrip + info */}
-          <div className="shrink-0 border-t border-white/[0.06]">
-            <FilmstripSection
-              filmstripRef={filmstripRef}
-              filmstripFrames={filmstripFrames}
-              frames={frames}
-              currentFrameIndex={currentFrameIndex}
-              handleFilmstripClick={handleFilmstripClick}
-              canScrollLeft={filmstripCanScrollLeft}
-              canScrollRight={filmstripCanScrollRight}
-              onScrollLeft={() => scrollFilmstrip('left')}
-              onScrollRight={() => scrollFilmstrip('right')}
-            />
-            <InfoPanel
-              scrollPosition={scrollPosition}
-              currentFrameIndex={currentFrameIndex}
-              progress={progress}
-              currentSceneLabel={currentSceneLabel}
-              map={map}
-            />
-          </div>
-        </motion.div>
+        <ScrollPreviewFullscreen
+          map={map}
+          frames={frames}
+          config={config as any}
+          currentFrameIndex={currentFrameIndex}
+          scrollPosition={scrollPosition}
+          progress={progress}
+          currentSceneLabel={currentSceneLabel}
+          frameCount={frameCount || 0}
+          mapEvents={map.events}
+          onExitFullscreen={() => setIsFullscreen(false)}
+          onStepUp={handleStepUp}
+          onStepDown={handleStepDown}
+          scrollFilmstrip={scrollFilmstrip}
+          filmstripRef={filmstripRef}
+          filmstripFrames={filmstripFrames}
+          handleFilmstripClick={handleFilmstripClick}
+          canScrollLeft={filmstripCanScrollLeft}
+          canScrollRight={filmstripCanScrollRight}
+        />
       ) : (
-        <motion.div
-          key="panel"
-          variants={panelVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          className="rounded-xl border border-white/[0.08] bg-white/[0.03] overflow-hidden"
-        >
-          {/* ════════════════════ Header ════════════════════ */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
-            <div className="flex items-center gap-2">
-              <Eye className="h-3.5 w-3.5 text-orange-400" />
-              <h2 className="text-xs font-medium uppercase tracking-widest text-white/30">
-                Scroll Preview
-              </h2>
-              <Badge variant="outline" className="border-white/[0.08] bg-white/[0.03] text-white/30 ml-1">
-                {SCROLL_MODE_INFO[map.config.mode]?.label}
-              </Badge>
-              <Badge variant="outline" className="border-white/[0.08] bg-white/[0.03] text-white/30">
-                {map.eventCount} frames
-              </Badge>
-            </div>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsFullscreen(true)}
-                className="h-7 w-7 p-0 text-white/25 hover:text-orange-400 hover:bg-orange-500/10"
-              >
-                <Maximize2 className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="h-7 w-7 p-0 text-white/25 hover:text-white/50 hover:bg-white/[0.06]"
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="p-5 space-y-5">
-            {/* ════════════════════ Trigger Map Visualization ════════════════════ */}
-            <TriggerMapVisualization map={map} currentScrollPosition={scrollPosition} />
-
-            {/* ════════════════════ Frame Display + Scroll Rail ════════════════════ */}
-            <div className="flex gap-4">
-              <div className="flex-1 min-w-0">
-                <FrameDisplayArea
-                  currentFrameIndex={currentFrameIndex}
-                  frames={frames}
-                  hasFrames={hasFrames}
-                  scrollPosition={scrollPosition}
-                  progress={progress}
-                  map={map}
-                  isFullscreen={false}
-                />
-              </div>
-              <ScrollSimulatorRail
-                railRef={railRef}
-                map={map}
-                progress={progress}
-                isDragging={isDragging}
-                handleRailMouseDown={handleRailMouseDown}
-                handleRailTouchStart={handleRailTouchStart}
-                onStepUp={handleStepUp}
-                onStepDown={handleStepDown}
-              />
-            </div>
-
-            {/* ════════════════════ Filmstrip ════════════════════ */}
-            <FilmstripSection
-              filmstripRef={filmstripRef}
-              filmstripFrames={filmstripFrames}
-              frames={frames}
-              currentFrameIndex={currentFrameIndex}
-              handleFilmstripClick={handleFilmstripClick}
-              canScrollLeft={filmstripCanScrollLeft}
-              canScrollRight={filmstripCanScrollRight}
-              onScrollLeft={() => scrollFilmstrip('left')}
-              onScrollRight={() => scrollFilmstrip('right')}
-              mode={map.config.mode}
-            />
-
-            {/* ════════════════════ Mode Editor (below filmstrip) ════════════════════ */}
-            {config && frameCount !== undefined && onConfigChange && setConfig && (
-              <ModeEditor
-                config={config}
-                frameCount={frameCount}
-                frameTimestamps={frameTimestamps}
-                disabled={false}
-                onConfigChange={onConfigChange}
-                setConfig={setConfig}
-              />
-            )}
-
-            {/* ════════════════════ Info Panel ════════════════════ */}
-            <InfoPanel
-              scrollPosition={scrollPosition}
-              currentFrameIndex={currentFrameIndex}
-              progress={progress}
-              currentSceneLabel={currentSceneLabel}
-              map={map}
-            />
-          </div>
-        </motion.div>
+        <ScrollPreviewPanel
+          map={map}
+          frames={frames}
+          config={config as any}
+          currentFrameIndex={currentFrameIndex}
+          scrollPosition={scrollPosition}
+          progress={progress}
+          currentSceneLabel={currentSceneLabel}
+          frameCount={frameCount || 0}
+          mapEvents={map.events}
+          onClose={onClose}
+          onExitFullscreen={() => setIsFullscreen(false)}
+          onStepUp={handleStepUp}
+          onStepDown={handleStepDown}
+          scrollFilmstrip={scrollFilmstrip}
+          filmstripRef={filmstripRef}
+          filmstripFrames={filmstripFrames}
+          handleFilmstripClick={handleFilmstripClick}
+          canScrollLeft={filmstripCanScrollLeft}
+          canScrollRight={filmstripCanScrollRight}
+        />
       )}
-    </AnimatePresence>
+    </>
   )
 }
