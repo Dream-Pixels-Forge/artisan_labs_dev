@@ -193,3 +193,36 @@ Stage Summary:
 - Rewrote Dashboard.tsx (fully dynamic, alive dashboard)
 - Generated hero-scene.png (cinematic hero background)
 - Dashboard demonstrates all app capabilities interactively
+
+---
+Task ID: 7
+Agent: mcp-coding-agent
+Task: Add MCP server for programmatic hero section creation
+
+Work Log:
+- Created src/app/api/mcp/route.ts - Streamable HTTP MCP server with JSON-RPC 2.0
+- Implemented 4 MCP tools: create_hero_section, generate_scroll_trigger, export_sequence, list_scroll_modes
+- Implemented 2 MCP resources: artisan://modes, artisan://config
+- Created src/components/hero-section.tsx - React component consuming scroll-trigger output
+- Created src/app/api/mcp/example.ts - Example client usage
+- Created src/app/api/mcp/route.test.ts - 4 unit tests for scroll-trigger integration
+- Created docs/MCP-INTEGRATION.md - Complete MCP documentation
+- MCP tools wrap existing scroll-trigger.ts calculation engine
+- Supports both Streamable HTTP (SSE) and plain JSON-RPC POST transport
+
+**Files Created:**
+- src/app/api/mcp/route.ts (MCP server)
+- src/app/api/mcp/route.test.ts (MCP tests)
+- src/app/api/mcp/example.ts (example client)
+- src/components/hero-section.tsx (React hero component)
+- docs/MCP-INTEGRATION.md (documentation)
+
+**Verification:**
+- tsc --noEmit: 0 errors
+- vitest run: 64 tests pass (60 existing + 4 new)
+- next build: exit 0
+
+Stage Summary:
+- Added MCP server for programmatic hero section creation and scroll-trigger config generation
+- Coding agents can now use MCP tools to create hero sections, compute trigger maps, and export sequences
+- All existing functionality preserved
