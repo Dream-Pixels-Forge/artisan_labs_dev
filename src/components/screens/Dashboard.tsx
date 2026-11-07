@@ -96,6 +96,9 @@ export default function Dashboard() {
       {/* ── Floating Particles ── */}
       <FloatingParticles />
 
+      {/* Capability Stats */}
+      <CapabilityStats />
+
       <motion.div
         className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12 sm:py-20 space-y-14 sm:space-y-18"
         variants={containerVariants}
